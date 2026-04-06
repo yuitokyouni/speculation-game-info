@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: jreit-abm
+Version: 0.1.0
+Summary: Agent-Based Model of J-REIT market extending Katahira-Chen (2019) Speculation Game
+Requires-Python: >=3.11
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.0
+Requires-Dist: matplotlib>=3.8
+Requires-Dist: lightgbm>=4.0
+Requires-Dist: scipy>=1.11
+Requires-Dist: tqdm>=4.66
+Requires-Dist: pandas-ta>=0.3
+Requires-Dist: japanize-matplotlib>=1.1
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: jupyter; extra == "dev"
+Requires-Dist: ipykernel; extra == "dev"

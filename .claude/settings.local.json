@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp -r jreit-speculation-game/src/ src/)",
+      "Bash(cp -r jreit-speculation-game/results/ results/)",
+      "Bash(python:*)",
+      "Bash(pip install:*)"
+    ]
+  }
+}
