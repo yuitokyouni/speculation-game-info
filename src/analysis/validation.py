@@ -86,44 +86,58 @@ def make_features(prices: np.ndarray, window: int = 14) -> pd.DataFrame:
 def rolling_accuracy_vs_nc(
     prices: np.ndarray,
     nc_series: np.ndarray,
-    window: int = 250,
-    step: int   = 50,
+    window: int = 500,
+    step: int   = 100,
     horizon: int = 10,
-    min_train: int = 200,
+    gap: int = 50,
 ) -> pd.DataFrame:
     """
-    Slide a window over the ABM price series.
-    For each window:
-      - compute LightGBM accuracy on direction prediction (horizon days ahead)
-      - compute mean nc
+    Slide a window over the ABM price series with proper time-series split.
+
+    For each window position:
+      - Train on first 60%, skip a gap, test on last 20%
+      - Gap prevents label leakage from horizon overlap
+      - Record LightGBM accuracy vs mean nc
 
     Returns DataFrame with columns: [t, mean_nc, accuracy]
     """
     T = len(prices)
+    if T < window + horizon:
+        return pd.DataFrame()
+
     features_all = make_features(prices)
 
     records = []
-    for t_end in range(window + min_train, T - horizon, step):
+    for t_end in range(window, T - horizon, step):
         t_start = t_end - window
 
         feat_win  = features_all.iloc[t_start:t_end].values
         price_win = prices[t_start:t_end]
 
         # Labels: 1 if price goes up in next `horizon` steps, else 0
-        labels = (prices[t_start + horizon: t_end + horizon] > price_win).astype(int)
+        future_prices = prices[t_start + horizon: t_end + horizon]
+        if len(future_prices) != len(price_win):
+            continue
+        labels = (future_prices > price_win).astype(int)
 
-        if len(np.unique(labels)) < 2:
-            continue   # skip if all same class
+        n = len(feat_win)
+        train_end = int(n * 0.6)
+        test_start = train_end + gap  # gap to prevent leakage
 
-        # Simple train/test split within window (80/20)
-        split = int(len(feat_win) * 0.8)
-        X_tr, X_te = feat_win[:split], feat_win[split:]
-        y_tr, y_te = labels[:split],   labels[split:]
-
-        if len(X_te) == 0 or len(np.unique(y_tr)) < 2:
+        if test_start >= n:
             continue
 
-        clf = LGBMClassifier(n_estimators=50, verbosity=-1, random_state=42)
+        X_tr, y_tr = feat_win[:train_end], labels[:train_end]
+        X_te, y_te = feat_win[test_start:], labels[test_start:]
+
+        if len(X_te) < 10 or len(np.unique(y_tr)) < 2 or len(np.unique(y_te)) < 2:
+            continue
+
+        clf = LGBMClassifier(
+            n_estimators=100, max_depth=4, num_leaves=15,
+            min_child_samples=20, subsample=0.8,
+            verbosity=-1, random_state=42,
+        )
         clf.fit(X_tr, y_tr)
         acc = (clf.predict(X_te) == y_te).mean()
 

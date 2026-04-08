@@ -1,49 +1,59 @@
 """
 config.py  –  Single source of truth for all model parameters.
+
+Parameter sources:
+  - Chartist params (M, S, B, C): Katahira & Chen (2019), Table 1
+  - Switching params (beta):      Brock & Hommes (1998)
+  - Fundamentalist (f_sensitivity): single free parameter κ
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
 class SimConfig:
     # ── Market participants ────────────────────────────────────────────
-    N: int   = 1000      # Total number of agents
-    T: int   = 50_000   # Time steps
+    N: int   = 301       # Katahira & Chen (2019): 301 agents
+    T: int   = 10_000    # Simulation length
 
     # ── Chartist (Speculation Game) params ────────────────────────────
-    M: int   = 5         # Memory length (history window)
-    S: int   = 2         # Number of strategies per Chartist agent
-    B: int   = 9         # Board lot (min wealth unit for 1 order)
-    C: float = 3.0       # Cognitive threshold for history quantization
+    # All from Katahira & Chen (2019)
+    M: int   = 3         # Memory length
+    S: int   = 2         # Strategies per agent
+    B: int   = 9         # Board lot (min wealth unit)
+    C: float = 3.0       # Cognitive threshold for quantization
 
     # ── Fundamentalist params ─────────────────────────────────────────
-    NAV: float        = 1000.0   # Fixed fundamental value (Phase 1)
-    nav_sigma: float  = 0.0      # NAV random walk std (0 = fixed)
-    f_threshold: float = 0.0    # (unused in v3 continuous model)
-    f_sensitivity: float = 0.5  # κ: restoring force scale
+    # Continuous restoring force: demand = κ * (NAV - p)/NAV * qty
+    # κ is the single free parameter for the fundamentalist side.
+    NAV: float           = 1000.0   # Fundamental value
+    nav_sigma: float     = 0.0      # NAV random walk std (0 = fixed)
+    f_sensitivity: float = 1.0      # κ: restoring force scale
 
     # ── Strategy switching (Brock & Hommes 1998) ──────────────────────
-    beta: float          = 2.0    # Intensity of choice (lower = smoother)
-    n_c_init: float      = 0.5   # Initial Chartist fraction
-    switching: bool      = True  # False = fixed n_c (exogenous)
-    switch_freq: int     = 200   # Steps between switching events
-    switch_warmup: int   = 1000  # Warm-up steps before switching activates
-    switch_max_delta: float = 0.05  # Max nc change per switching event
+    # β is the intensity of choice — the single free parameter from B&H.
+    beta: float          = 1.0      # Intensity of choice
+    n_c_init: float      = 0.5      # Initial Chartist fraction
+    switching: bool      = True     # False = fixed n_c (exogenous)
+    switch_freq: int     = 50       # Steps between switching events
+    switch_warmup: int   = 500      # Warm-up before switching starts
 
     # ── Price dynamics ────────────────────────────────────────────────
-    max_move: float  = 0.02   # Max price change per step (fraction of p)
-    p_floor:  float  = 10.0  # Minimum price floor
+    # Numerical safety only — should rarely bind in normal operation
+    max_move: float  = 0.05         # Max price change per step (5%)
+    p_floor:  float  = 10.0         # Minimum price floor
 
-    max_qty: int = 50         # Hard cap on per-agent order quantity
+    # Safety caps on order quantity (prevents NaN from extreme wealth)
+    max_qty: int   = 500            # Chartist cap
+    f_max_qty: int = 500            # Fundamentalist cap
 
     # ── Initial conditions ────────────────────────────────────────────
-    p0: float  = 1000.0       # Initial market price (= NAV)
-    w0_max: float = 100.0     # Uniform initial wealth U[0, w0_max)
+    p0: float     = 1000.0          # Initial market price (= NAV)
+    w0_max: float = 100.0           # Initial wealth ~ U[0, w0_max)
 
     # ── Validation (LightGBM) ─────────────────────────────────────────
-    val_window: int   = 250   # Rolling window for accuracy calculation
-    val_step: int     = 50    # Step size for rolling window
-    predict_horizon: int = 10 # Days ahead for direction prediction
+    val_window: int      = 500      # Rolling window size
+    val_step: int        = 100      # Step size for rolling
+    predict_horizon: int = 10       # Days ahead for direction prediction
 
     # ── Random seed ───────────────────────────────────────────────────
     seed: int = 42

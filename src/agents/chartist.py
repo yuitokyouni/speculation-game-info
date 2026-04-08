@@ -14,9 +14,10 @@ def _all_histories(M: int) -> list:
 class ChartistAgent:
     def __init__(self, agent_id: int, M: int, S: int, B: int,
                  rng: np.random.Generator, w0: Optional[float] = None,
-                 fitness_alpha: float = 0.05):
+                 fitness_alpha: float = 0.05, max_qty: int = 50):
         self.id   = agent_id
         self.M, self.S, self.B = M, S, B
+        self.max_qty = max_qty
         self.rng  = rng
         w_init = w0 if (w0 is not None and np.isfinite(w0)) else B + rng.uniform(0, 100)
         self.w = float(max(w_init, float(B)))
@@ -44,7 +45,7 @@ class ChartistAgent:
 
     def order_qty(self) -> int:
         w = self.w if np.isfinite(self.w) else float(self.B)
-        return max(1, min(50, int(w // self.B)))
+        return max(1, min(self.max_qty, int(w // self.B)))
 
     def open_position(self, action: int, qty: int,
                       cog_price: float, real_price: float):
