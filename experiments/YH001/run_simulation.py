@@ -8,21 +8,10 @@ from __future__ import annotations
 
 import time
 import numpy as np
+import powerlaw
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from model import simulate
-
-
-def theoretical_kurtosis(N: int, c: float, a: float) -> float:
-    """Approximate excess kurtosis from Cont-Bouchaud Eq.(15).
-
-    κ ≈ (1/(2a) - 1) * <W^4>/<W^2>^2 - 3  (simplified form)
-    For ER graph near percolation: <W^k> diverges, but we use the
-    mean-field approximation for finite N.
-    """
-    # This is a rough approximation; the exact form depends on cluster
-    # size moments which we estimate from simulation instead.
-    return float("nan")
 
 
 def run_and_plot():
@@ -116,50 +105,47 @@ def run_and_plot():
     ax.set_ylabel("P(W)")
     ax.legend()
 
-    # 5. Excess kurtosis display
-    ax = axes[1, 1]
-    ax.text(
-        0.5,
-        0.6,
-        f"Excess Kurtosis\n\n{kurt:.2f}",
-        transform=ax.transAxes,
-        fontsize=24,
-        ha="center",
-        va="center",
-        fontweight="bold",
-    )
-    ax.text(
-        0.5,
-        0.25,
-        f"(Gaussian = 0)\n\nN={params['N']}, c={params['c']}, a={params['a']}, T={params['T']}",
-        transform=ax.transAxes,
-        fontsize=11,
-        ha="center",
-        va="center",
-        color="gray",
-    )
-    ax.set_axis_off()
-    ax.set_title("Summary statistic")
-
-    # 6. Parameter sensitivity: kurtosis vs c
-    ax = axes[1, 2]
-    c_values = [0.5, 0.7, 0.8, 0.9, 0.95, 0.99]
+    # 5 & 6: Parameter sweep — compute kurtosis and α together
+    c_values = [0.5, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0]
     kurtosis_values = []
-    print("\nParameter sensitivity (c vs kurtosis):")
+    alpha_values = []
+    alpha_sigmas = []
+    print("\nParameter sweep (c → kurtosis, α):")
     for c_val in c_values:
         print(f"  c={c_val} ...", end=" ", flush=True)
         t0 = time.time()
         res = simulate(N=10000, c=c_val, a=0.01, T=10000, seed=42, report_every=0)
-        k = sp_kurtosis(res["returns"], fisher=True)
+        r = res["returns"]
+        k = sp_kurtosis(r, fisher=True)
         kurtosis_values.append(k)
-        print(f"kurtosis={k:.2f}  ({time.time()-t0:.1f}s)")
+        abs_r = np.abs(r)
+        abs_r = abs_r[abs_r > 0]
+        fit = powerlaw.Fit(abs_r, discrete=True, verbose=False)
+        alpha_values.append(fit.power_law.alpha)
+        alpha_sigmas.append(fit.power_law.sigma)
+        print(f"kurtosis={k:.2f}, α={fit.power_law.alpha:.3f}  ({time.time()-t0:.1f}s)")
 
-    ax.plot(c_values, kurtosis_values, "o-", color="navy", linewidth=2, markersize=8)
-    ax.set_title("Kurtosis vs coordination parameter c")
+    # 5. Tail exponent α vs c
+    ax = axes[1, 1]
+    ax.errorbar(
+        c_values, alpha_values, yerr=alpha_sigmas,
+        fmt="o-", color="navy", linewidth=2, markersize=7, capsize=4,
+    )
+    ax.axhline(y=3.0, color="red", linestyle="--", alpha=0.6, label=r"$\alpha=3$")
+    ax.set_title(r"Tail exponent $\alpha$ vs c  (Clauset MLE)")
+    ax.set_xlabel("c")
+    ax.set_ylabel(r"$\alpha$")
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    # 6. Kurtosis vs c
+    ax = axes[1, 2]
+    ax.plot(c_values, kurtosis_values, "o-", color="navy", linewidth=2, markersize=7)
+    ax.set_title("Excess kurtosis vs c")
     ax.set_xlabel("c")
     ax.set_ylabel("Excess kurtosis")
     ax.axhline(y=0, color="red", linestyle="--", alpha=0.5, label="Gaussian")
-    ax.legend()
+    ax.legend(fontsize=9)
 
     plt.tight_layout()
     plt.savefig("results.png", dpi=150, bbox_inches="tight")
