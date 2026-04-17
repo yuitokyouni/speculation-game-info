@@ -1,29 +1,55 @@
-# speculation-game-info
+# YH: 金融 ABM の系譜を辿る個人実装プロジェクト
 
-Speculation Game (Katahira & Chen 2019, Physica A 524:503-518) に
-情報構造の異質性を導入し、市場の Stylized Facts が
-エージェントの情報利用様式からどう内生するかを調べる。
+金融市場の Agent-Based Model (ABM) の主要論文を自力で Python 実装し、
+各モデルの理論的主張を数値的に検証する。Cont-Bouchaud (1997) の
+パーコレーションモデルから Katahira et al. (2019) の Speculation Game まで、
+古典 (1997-2010) から最近の拡張までを系統的にカバーする。
+東京大学 SCSLAB (陳研究室) への進学準備の一環として実施。
 
-## 構成
+## 実装リスト
+
+| ID | モデル | 論文 | 状態 |
+|----|--------|------|------|
+| YH001 | Cont-Bouchaud Percolation | Cont & Bouchaud (1997) | Done |
+| YH002 | Lux-Marchesi | Lux & Marchesi (1999) Nature | Planned |
+| YH003 | Minority Game | Challet & Zhang (1997) | Planned |
+| YH004 | Grand Canonical MG | Jefferies et al. (2001) | Planned |
+| YH005 | Speculation Game | Katahira et al. (2019) | Planned |
+
+## ディレクトリ構造
 
 ```
-src/core/        シミュレーション本体
-experiments/     番号付き実験（再現→拡張の順）
-analysis/        Stylized Facts 検証ツール
-docs/            先行研究整理・仮説
-archive/jreit_v1 旧 J-REIT ABM（参考保存）
+experiments/
+├── YH001/          Cont-Bouchaud (1997) — 完了
+├── YH002/          Lux & Marchesi (1999) — 骨格のみ
+├── YH003/          Challet & Zhang (1997) — 骨格のみ
+├── YH004/          Jefferies et al. (2001) — 骨格のみ
+└── YH005/          Katahira et al. (2019) — 骨格のみ
+
+src/core/           共通シミュレーション基盤
+analysis/           Stylized Facts 検証ツール
+docs/               先行研究整理・仮説
+archive/            旧コード退避
 ```
 
-旧 J-REIT ABM のフルコードは [`archive/jreit-abm`](../../tree/archive/jreit-abm) ブランチにも保存。
+各実験ディレクトリは `model.py` (モデル本体), `run_simulation.py` (実行・可視化),
+`README.md` (実験ノート) を含む。
 
 ## セットアップ
 
 ```bash
-pip install -e .
-python src/run.py
+pip install -r requirements.txt
+cd experiments/YH001
+python run_simulation.py
 ```
 
-## 参考文献
+## 使用技術
 
-- Katahira & Chen (2019). Speculation Game. *Physica A*, 524, 503-518.
-- Brock & Hommes (1998). Heterogeneous beliefs and routes to chaos. *JEDC*, 22, 1235-1274.
+- Python 3.x
+- NumPy, SciPy, Matplotlib
+- powerlaw (Clauset-Shalizi-Newman テール推定)
+- NetworkX (ランダムグラフ生成、必要に応じて)
+
+## ライセンス
+
+MIT License — 詳細は [LICENSE](LICENSE) を参照。
