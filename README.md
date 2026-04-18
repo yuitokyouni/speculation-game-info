@@ -1,4 +1,4 @@
-# YH: 金融 ABM の系譜を辿る個人実装プロジェクト
+# 金融マーケットABMの系譜を辿る
 
 金融市場の Agent-Based Model (ABM) の主要論文を自力で Python 実装し、
 各モデルの理論的主張を数値的に検証する。Cont-Bouchaud (1997) の
