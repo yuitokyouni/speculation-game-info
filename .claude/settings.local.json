@@ -13,7 +13,10 @@
       "Bash(git commit -m ':*)",
       "Bash(gh repo:*)",
       "Bash(git remote:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(pdftotext --version)",
+      "Bash(pip show *)",
+      "Bash(/opt/anaconda3/bin/python *)"
     ]
   }
 }
