@@ -15,7 +15,8 @@
       "Bash(pdftotext --version)",
       "Bash(pip show *)",
       "Bash(/opt/anaconda3/bin/python *)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(tee /tmp/yh003_run.log)"
     ]
   }
 }
