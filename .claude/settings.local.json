@@ -16,7 +16,10 @@
       "Bash(pip show *)",
       "Bash(/opt/anaconda3/bin/python *)",
       "WebFetch(domain:api.github.com)",
-      "Bash(tee /tmp/yh003_run.log)"
+      "Bash(tee /tmp/yh003_run.log)",
+      "WebSearch",
+      "WebFetch(domain:arxiv.org)",
+      "Bash(brew --version)"
     ]
   }
 }
