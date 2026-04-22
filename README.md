@@ -14,7 +14,9 @@
 | YH002 | Lux-Marchesi | Lux & Marchesi (1999) Nature | Planned |
 | YH003 | Minority Game | Challet & Zhang (1997) | Planned |
 | YH004 | Grand Canonical MG | Jefferies et al. (2001) | Planned |
-| YH005 | Speculation Game | Katahira et al. (2019) | Planned |
+| YH005 | Speculation Game (Lite) | Katahira et al. (2019) + Katahira & Chen (2019) | Done |
+| YH006 | Speculation Game Full (論文1+2 完全再現) | Katahira et al. (2019) + Katahira & Chen (2019) | 骨格のみ |
+| YH007 | Self-organized Speculation Game | Katahira & Chen (Physica A 2021) | 骨格のみ |
 
 ## ディレクトリ構造
 
@@ -24,7 +26,9 @@ experiments/
 ├── YH002/          Lux & Marchesi (1999) — 骨格のみ
 ├── YH003/          Challet & Zhang (1997) — 骨格のみ
 ├── YH004/          Jefferies et al. (2001) — 骨格のみ
-└── YH005/          Katahira et al. (2019) — 骨格のみ
+├── YH005/          Katahira et al. (2019) Lite — 完了 (Null test + 3モデル比較)
+├── YH006/          SG Full (論文1+2 完全再現) — 骨格のみ
+└── YH007/          Self-organized SG (論文3) — 骨格のみ
 
 src/core/           共通シミュレーション基盤
 analysis/           Stylized Facts 検証ツール
