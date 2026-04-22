@@ -30,9 +30,12 @@ def simulate(
     history_mode: str = "endogenous",
     decision_mode: str = "strategy",
     random_open_prob: float = 0.5,
+    order_size_buckets: tuple[int, int] = (50, 100),
 ) -> dict:
     assert history_mode in ("endogenous", "exogenous")
     assert decision_mode in ("strategy", "random")
+    small_max, medium_max = int(order_size_buckets[0]), int(order_size_buckets[1])
+    assert small_max < medium_max, "order_size_buckets must be (small_max, medium_max) with small_max < medium_max"
     K = mu_capacity(M)
     rng = np.random.default_rng(seed)
 
@@ -50,6 +53,7 @@ def simulate(
     entry_price = np.zeros(N, dtype=np.int64)
     entry_action = np.zeros(N, dtype=np.int8)
     entry_quantity = np.zeros(N, dtype=np.int64)
+    entry_step = np.zeros(N, dtype=np.int64)
     v_pos = np.zeros((N, S), dtype=np.int8)
     v_ep = np.zeros((N, S), dtype=np.int64)
     v_ea = np.zeros((N, S), dtype=np.int8)
@@ -65,7 +69,17 @@ def simulate(
     num_sell_log = np.empty(T, dtype=np.int64)
     num_active_hold_log = np.empty(T, dtype=np.int64)
     num_passive_hold_log = np.empty(T, dtype=np.int64)
+    num_orders_by_size_buy = np.zeros((T, 3), dtype=np.int64)
+    num_orders_by_size_sell = np.zeros((T, 3), dtype=np.int64)
     num_substitutions = 0
+
+    # round-trip event log (per-close append; converted at return)
+    rt_agent_idx: list[int] = []
+    rt_open_t: list[int] = []
+    rt_close_t: list[int] = []
+    rt_entry_action: list[int] = []
+    rt_entry_quantity: list[int] = []
+    rt_delta_G: list[int] = []
 
     arange_N = np.arange(N)
 
@@ -110,10 +124,16 @@ def simulate(
         else:
             mu = int(rng.integers(0, K))
 
-        # 5) close 実行
+        # 5) close 実行 — 状態クリア前に round_trips レコードを append (agent_idx 昇順)
         close_idx = np.where(is_close_mask)[0]
         if close_idx.size:
             dG = entry_action[close_idx].astype(np.int64) * (P - entry_price[close_idx])
+            rt_agent_idx.extend(close_idx.tolist())
+            rt_open_t.extend(entry_step[close_idx].tolist())
+            rt_close_t.extend([t] * close_idx.size)
+            rt_entry_action.extend(entry_action[close_idx].tolist())
+            rt_entry_quantity.extend(entry_quantity[close_idx].tolist())
+            rt_delta_G.extend(dG.tolist())
             # G[i, active_idx[i]] += dG_i  (各 i は distinct なので直接 += で安全、ただし
             # 可読性のため np.add.at を使用)
             np.add.at(G, (close_idx, active_idx[close_idx]), dG)
@@ -122,6 +142,7 @@ def simulate(
             entry_price[close_idx] = 0
             entry_action[close_idx] = 0
             entry_quantity[close_idx] = 0
+            entry_step[close_idx] = 0
 
         # 6) open 実行
         open_idx = np.where(is_open_mask)[0]
@@ -130,6 +151,7 @@ def simulate(
             entry_price[open_idx] = P
             entry_action[open_idx] = effective[open_idx].astype(np.int8)
             entry_quantity[open_idx] = quantity[open_idx]
+            entry_step[open_idx] = t
 
         # 7) virtual 更新 (j != active_idx)
         #    recs_all[i, j] = strategies[i, j, mu_t]  (全 N, S)
@@ -177,6 +199,7 @@ def simulate(
                 entry_price[i] = 0
                 entry_action[i] = 0
                 entry_quantity[i] = 0
+                entry_step[i] = 0
                 v_pos[i] = 0
                 v_ep[i] = 0
                 v_ea[i] = 0
@@ -187,10 +210,30 @@ def simulate(
         prices[t] = p
         h_series[t] = h
         cognitive_prices[t] = P
-        num_buy_log[t] = int((effective == 1).sum())
-        num_sell_log[t] = int((effective == -1).sum())
+        buy_mask_t = (effective == 1)
+        sell_mask_t = (effective == -1)
+        num_buy_log[t] = int(buy_mask_t.sum())
+        num_sell_log[t] = int(sell_mask_t.sum())
         num_active_hold_log[t] = int(is_active_hold_mask.sum())
         num_passive_hold_log[t] = int(is_passive_hold_mask.sum())
+        buy_q = quantity[buy_mask_t]
+        sell_q = quantity[sell_mask_t]
+        num_orders_by_size_buy[t, 0] = int((buy_q <= small_max).sum())
+        num_orders_by_size_buy[t, 1] = int(((buy_q > small_max) & (buy_q <= medium_max)).sum())
+        num_orders_by_size_buy[t, 2] = int((buy_q > medium_max).sum())
+        num_orders_by_size_sell[t, 0] = int((sell_q <= small_max).sum())
+        num_orders_by_size_sell[t, 1] = int(((sell_q > small_max) & (sell_q <= medium_max)).sum())
+        num_orders_by_size_sell[t, 2] = int((sell_q > medium_max).sum())
+
+    round_trips = {
+        "agent_idx": np.asarray(rt_agent_idx, dtype=np.int64),
+        "open_t": np.asarray(rt_open_t, dtype=np.int64),
+        "close_t": np.asarray(rt_close_t, dtype=np.int64),
+        "entry_action": np.asarray(rt_entry_action, dtype=np.int8),
+        "entry_quantity": np.asarray(rt_entry_quantity, dtype=np.int64),
+        "delta_G": np.asarray(rt_delta_G, dtype=np.int64),
+    }
+    num_orders_by_size = num_orders_by_size_buy + num_orders_by_size_sell
 
     return {
         "prices": prices,
@@ -203,4 +246,8 @@ def simulate(
         "num_active_hold": num_active_hold_log,
         "num_passive_hold": num_passive_hold_log,
         "total_wealth": int(w.sum()),
+        "round_trips": round_trips,
+        "num_orders_by_size": num_orders_by_size,
+        "num_orders_by_size_buy": num_orders_by_size_buy,
+        "num_orders_by_size_sell": num_orders_by_size_sell,
     }

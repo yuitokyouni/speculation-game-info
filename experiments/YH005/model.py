@@ -46,6 +46,7 @@ class Agent:
     entry_price: int             # open 時の P
     entry_action: int            # open 時の effective ∈ {-1, +1}
     entry_quantity: int          # open 時の q = floor(w/B)
+    entry_step: int              # open 時の step t (round-trip horizon 追跡用)
     virtual_positions: np.ndarray       # (S,) int8
     virtual_entry_prices: np.ndarray    # (S,) int64
     virtual_entry_actions: np.ndarray   # (S,) int8
@@ -71,10 +72,13 @@ def run_reference(
     history_mode: str = "endogenous",     # 'endogenous' | 'exogenous'
     decision_mode: str = "strategy",       # 'strategy'   | 'random'
     random_open_prob: float = 0.5,
+    order_size_buckets: tuple[int, int] = (50, 100),
 ) -> dict:
     """Speculation Game の per-agent 参照実装。詳細はモジュール docstring。"""
     assert history_mode in ("endogenous", "exogenous")
     assert decision_mode in ("strategy", "random")
+    small_max, medium_max = int(order_size_buckets[0]), int(order_size_buckets[1])
+    assert small_max < medium_max, "order_size_buckets must be (small_max, medium_max) with small_max < medium_max"
     K = mu_capacity(M)
     rng = np.random.default_rng(seed)
 
@@ -96,6 +100,7 @@ def run_reference(
             entry_price=0,
             entry_action=0,
             entry_quantity=0,
+            entry_step=0,
             virtual_positions=np.zeros(S, dtype=np.int8),
             virtual_entry_prices=np.zeros(S, dtype=np.int64),
             virtual_entry_actions=np.zeros(S, dtype=np.int8),
@@ -112,7 +117,17 @@ def run_reference(
     num_sell_log = np.empty(T, dtype=np.int64)
     num_active_hold_log = np.empty(T, dtype=np.int64)
     num_passive_hold_log = np.empty(T, dtype=np.int64)
+    num_orders_by_size_buy = np.zeros((T, 3), dtype=np.int64)
+    num_orders_by_size_sell = np.zeros((T, 3), dtype=np.int64)
     num_substitutions = 0
+
+    # round-trip event log (append per close, convert to np.ndarray at return)
+    rt_agent_idx: list[int] = []
+    rt_open_t: list[int] = []
+    rt_close_t: list[int] = []
+    rt_entry_action: list[int] = []
+    rt_entry_quantity: list[int] = []
+    rt_delta_G: list[int] = []
 
     # ---- メインループ ----
     for t in range(T):
@@ -170,17 +185,24 @@ def run_reference(
         else:
             market.mu = int(rng.integers(0, K))
 
-        # 5) close 実行
+        # 5) close 実行 — 状態クリア前に round_trips レコードを append
         for i in range(N):
             if kinds[i] == "close":
                 a = agents[i]
                 dG = int(a.entry_action) * (market.P - int(a.entry_price))
+                rt_agent_idx.append(i)
+                rt_open_t.append(int(a.entry_step))
+                rt_close_t.append(t)
+                rt_entry_action.append(int(a.entry_action))
+                rt_entry_quantity.append(int(a.entry_quantity))
+                rt_delta_G.append(dG)
                 a.G[a.active_idx] += dG
                 a.w += dG * int(a.entry_quantity)
                 a.position = 0
                 a.entry_price = 0
                 a.entry_action = 0
                 a.entry_quantity = 0
+                a.entry_step = 0
 
         # 6) open 実行
         for i in range(N):
@@ -190,6 +212,7 @@ def run_reference(
                 a.entry_price = market.P
                 a.entry_action = int(effective[i])
                 a.entry_quantity = int(quantity[i])
+                a.entry_step = t
 
         # 7) virtual 更新 (j != active_idx)
         for i in range(N):
@@ -242,6 +265,7 @@ def run_reference(
                 a.entry_price = 0
                 a.entry_action = 0
                 a.entry_quantity = 0
+                a.entry_step = 0
                 a.virtual_positions = np.zeros(S, dtype=np.int8)
                 a.virtual_entry_prices = np.zeros(S, dtype=np.int64)
                 a.virtual_entry_actions = np.zeros(S, dtype=np.int8)
@@ -256,8 +280,29 @@ def run_reference(
         num_sell_log[t] = int((effective == -1).sum())
         num_active_hold_log[t] = sum(1 for k in kinds if k == "active_hold")
         num_passive_hold_log[t] = sum(1 for k in kinds if k == "passive_hold")
+        # order size buckets: effective != 0 のオーダーを quantity で 3 分類
+        buy_mask_t = (effective == 1)
+        sell_mask_t = (effective == -1)
+        buy_q = quantity[buy_mask_t]
+        sell_q = quantity[sell_mask_t]
+        num_orders_by_size_buy[t, 0] = int((buy_q <= small_max).sum())
+        num_orders_by_size_buy[t, 1] = int(((buy_q > small_max) & (buy_q <= medium_max)).sum())
+        num_orders_by_size_buy[t, 2] = int((buy_q > medium_max).sum())
+        num_orders_by_size_sell[t, 0] = int((sell_q <= small_max).sum())
+        num_orders_by_size_sell[t, 1] = int(((sell_q > small_max) & (sell_q <= medium_max)).sum())
+        num_orders_by_size_sell[t, 2] = int((sell_q > medium_max).sum())
 
     final_wealth = np.array([a.w for a in agents], dtype=np.int64)
+
+    round_trips = {
+        "agent_idx": np.asarray(rt_agent_idx, dtype=np.int64),
+        "open_t": np.asarray(rt_open_t, dtype=np.int64),
+        "close_t": np.asarray(rt_close_t, dtype=np.int64),
+        "entry_action": np.asarray(rt_entry_action, dtype=np.int8),
+        "entry_quantity": np.asarray(rt_entry_quantity, dtype=np.int64),
+        "delta_G": np.asarray(rt_delta_G, dtype=np.int64),
+    }
+    num_orders_by_size = num_orders_by_size_buy + num_orders_by_size_sell
 
     return {
         "prices": prices,
@@ -270,4 +315,8 @@ def run_reference(
         "num_active_hold": num_active_hold_log,
         "num_passive_hold": num_passive_hold_log,
         "total_wealth": int(final_wealth.sum()),
+        "round_trips": round_trips,
+        "num_orders_by_size": num_orders_by_size,
+        "num_orders_by_size_buy": num_orders_by_size_buy,
+        "num_orders_by_size_sell": num_orders_by_size_sell,
     }
