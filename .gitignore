@@ -30,6 +30,9 @@ Thumbs.db
 # Testing
 .pytest_cache/
 
+# Claude Code runtime state
+.claude/
+
 # Large output files
 *.pkl
 *.npy
