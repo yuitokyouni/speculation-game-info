@@ -201,7 +201,7 @@ log_r = np.diff(np.log(p))   # 負価格は NaN にする前処理を挟む
 
 ## § 3. Speculation Game の仕様 (論文1・論文2 からの抽出)
 
-**注:** 論文 1 (Katahira et al. 2019 Physica A 524:503-518) と論文 2 (Katahira & Chen 2019 arXiv:1909.03185) の PDF はリポジトリ内に見当たらない (`experiments/YH002/` と `experiments/YH004/` にはそれぞれの対応論文 PDF がある)。本 §3 は Step 0 プロンプト本体に書かれた仕様記述 (著者が論文から抽出済みと明記している) を一次情報として採用する。§10 で論文 PDF を提供するよう依頼する。
+**注:** 論文 1 (Katahira et al. 2019 Physica A 524:503-518) と論文 2 (Katahira & Chen 2019 arXiv:1909.03185) の PDF は Yuito が手動で `experiments/YH005/papers/` に配置する予定 (ファイル名: `katahira_chen_2019_physica_a.pdf`, `katahira_chen_2019_arxiv.pdf`)。Step 2 着手時点で存在している前提。本 §3 は Step 0 プロンプト本体に書かれた仕様記述 (著者が論文から抽出済みと明記) を一次情報として採用する。
 
 ### 3.1 履歴と量子化
 
@@ -385,18 +385,29 @@ w_i(t)     = w_i(t_0) + Δw_i(t)
 
 ### 4.5 Null test B (ランダム取引モード) の意思決定ルール
 
-- **(a) 論文該当箇所**: 論文2 Fig. 11(b) キャプション "round-trip trade was randomly opened with a probability p = 0.5 without referencing the price history as well as the current position"。
-- **(b) 推奨**:
-  - §3.11 ステップ 3 の前で各エージェント `u = rng.random()` を 1 回。
-  - `position == 0` なら:
-    - `u < p` のとき further `rng.random()` でさらに ±1 を 0.5 ずつ決定 (2 回目の random())。それを rec とする。
-    - `u ≥ p` なら rec = 0。
-  - `position != 0` なら:
-    - `u < p` のとき rec = `-position` (close)。
-    - `u ≥ p` なら rec = 0 (passive hold)。
-  - 戦略テーブル・履歴は意思決定に使わない。価格からの h(t) 計算は通常通り (認知世界を壊さない)。
-- **(c) 理由**: 論文2 キャプションの "p=0.5 without referencing price history as well as the current position" の自然な実装。ただし「current position も参照しない」と取ると position!=0 でも +1 や -1 を出し得て、これは表 §3.8 では `passive_hold` や `close` のどちらにでも解釈され得る。実装上 close と open を対称に扱うため「position!=0 ならランダムに close するかしないか」の解釈を採用。**この解釈は確認したい点の一つ。**
-- **(d) 代替案**: (d1) position 非参照で strictly `rec ∈ {-1, 0, +1}` を 1/3 ずつ — passive_hold と close の比率が変わる。(d2) "current position を参照しない" を「戦略テーブル内の position 相当の情報を参照しない」と読む — 実質 SG と区別つかない。
+- **(a) 論文該当箇所**: 論文2 Fig. 11(b) キャプション "a round-trip trade was randomly opened with a probability p = 0.5 **without referencing the price history as well as the current position**"。
+- **(b) 採用ルール** (Yuito 確認済み、論文の literal 解釈):
+
+  各エージェント毎ステップ:
+  ```
+  u = rng.random()
+  if u < random_open_prob:          # p = 0.5
+      d = rng.random()
+      rec = +1 if d < 0.5 else -1
+  else:
+      rec = 0
+  ```
+  この `rec` を §3.8 の effective-action 決定表にそのまま流す。position との突き合わせは effective 変換の共通層で行われ、**意思決定ロジック本体は position を参照しない**:
+
+  - `position == 0` で `rec == ±1` → open
+  - `position == ±1` で `rec == ∓1` (反対方向) → close
+  - `position == ±1` で `rec == ±1` (同方向) → passive_hold
+  - `position == ±1` で `rec == 0` → active_hold
+  - `position == 0` で `rec == 0` → idle
+
+- **(c) 理由**: 論文2 Fig. 11(b) キャプションの literal な解釈。「current position を参照しない」と書いてあるので、decision ロジックが position に依存してはならない。effective-action 変換は全モード共通の下流層なのでここが position を見るのは OK。これで (i) 論文の文言と整合、(ii) round-trip 構造 (close で wealth 更新) も保持される。
+- **(d) 代替案**: (d1) 当初指示書 2.5 の「position==0 と position!=0 で rec の選択肢を変える」版 — 論文の literal 読みから外れるため不採用。(d2) `rec ∈ {-1, 0, +1}` を 1/3 ずつ等確率 — 論文の "p = 0.5 で trade する" の p が idle 率になり意味が変わる。
+- **RNG 消費**: 毎エージェント 1〜2 回 (常に `u` を 1 回、`u < p` のときのみ `d` を追加で 1 回)。§7.2 の消費順と整合。
 
 ### 4.6 Null test A (外生履歴モード) の P(t) 扱い
 
@@ -438,8 +449,10 @@ w_i(t)     = w_i(t_0) + Δw_i(t)
   3. `ccdf(x, normalize=True)` — 補完累積分布 + Hill MLE tail index
   4. `kurtosis(returns, window)` — aggregational window
   5. `log_returns_from_prices(p)` — `np.diff(np.log(p))`、p≤0 は NaN
-- 論文2 Fig. 11 **再現スクリプト** (`reproduce_null_tests.py`): baseline / Null A / Null B 3 条件。
+- 論文2 Fig. 11 **再現スクリプト** (`null_tests.py`): baseline / Null A / Null B 3 条件。
 - **3 モデル比較図** (`compare_three_models.py`): YH003 / YH004 / YH005 を S=1, N=1000, M=5, T=50000 で同時実行し 3×3 グリッドで可視化。
+- **ベースライン単体実行** (`baseline.py`): §8.4 の T=20000 ベースラインを走らせて stylized facts サマリを出力。
+- **CLI ランチャー** (`run_simulation.py`): 上記 3 スクリプトを mode 引数で切り替え。
 - **README** (`README.md`): §4 設計選択、§3 モデル仕様サマリ、検証結果、参考文献。
 - **pytest ユニットテスト** (`tests/test_parity.py`): §8 の受け入れ基準を全てコードで検証。
 
@@ -453,7 +466,7 @@ w_i(t)     = w_i(t_0) + Δw_i(t)
 
 「将来のために下準備として書いておく」も禁止。
 
-### 5.3 ファイル構成 (案 A 採用、§1.4 提案)
+### 5.3 ファイル構成 (案 A 採用、§1.4 提案、Yuito 確認済み)
 
 ```
 experiments/YH005/
@@ -461,24 +474,37 @@ experiments/YH005/
 ├── simulate.py                       # simulate() ベクトル化版 + parity 版
 ├── analysis.py                       # 5 つの stylized facts 関数
 ├── history.py                        # K=5 base encoder + quantize_price_change
-├── _mg_gcmg_baseline.py              # YH003/YH004 の simulate をラップ (S=1 で log-returns まで出す)
-├── reproduce_null_tests.py           # 論文2 Fig.11 再現スクリプト
-├── compare_three_models.py           # 3モデル比較スクリプト
+├── _mg_gcmg_baseline.py              # YH003/YH004 の simulate をラップ (importlib で遅延 load)
+├── baseline.py                       # ベースライン単体 run + stylized facts 出力
+├── null_tests.py                     # 論文2 Fig.11 再現 (baseline / Null A / Null B)
+├── compare_three_models.py           # 3 モデル比較図生成
+├── run_simulation.py                 # CLI ランチャー (argparse で mode 切替)
 ├── README.md                         # Step 2 で書き換え
+├── papers/                           # Yuito が手動配置 (Step 2 着手前)
+│   ├── katahira_chen_2019_physica_a.pdf
+│   └── katahira_chen_2019_arxiv.pdf
 ├── tests/
 │   ├── __init__.py
 │   └── test_parity.py                # pytest テスト
-├── outputs/                          # 実行で生成される .png, .json
-│   ├── null_tests.png
+├── outputs/                          # JSON メトリクス置き場
 │   ├── null_tests_metrics.json
-│   ├── three_models_comparison.png
 │   └── three_models_metrics.json
-└── results.png                       # 既存シリーズ規約のメイン図 (compare_three_models のコピー or 別図)
+├── results_null_tests.png            # 論文2 Fig. 11 再現 (メイン図 1)
+└── results_compare_three.png         # 3 モデル比較 (メイン図 2)
 ```
 
-既存プレースホルダ 3 ファイル (`model.py`, `run_simulation.py`, `README.md`) は上書き。`memo.txt` は保持 (空)。
+**`run_simulation.py` (CLI ランチャー) の仕様**:
+```python
+# mode ∈ {"baseline", "null_tests", "compare_three"}
+python run_simulation.py baseline --seed 777
+python run_simulation.py null_tests --seed 777
+python run_simulation.py compare_three --seed 123
+```
+各 mode は `baseline.py` / `null_tests.py` / `compare_three_models.py` の `run_*()` 関数を呼ぶ薄いラッパ。
 
-**注:** `run_simulation.py` は既存規約のエントリポイント名。`reproduce_null_tests.py` と `compare_three_models.py` が主スクリプトなので、`run_simulation.py` は「両方をまとめて実行するランチャー」か、もしくは廃止する。Yuito の好みを §10 で聞く。
+**注**: 既存シリーズは単一 `results.png` 規約だが、YH005 は Lite スコープの主要結果が 2 種 (Null test 再現と 3 モデル比較) あるため `results_null_tests.png` と `results_compare_three.png` の 2 枚に分ける。README でその旨を明記する。
+
+既存プレースホルダ 3 ファイル (`model.py`, `run_simulation.py`, `README.md`) は上書き。`memo.txt` は保持 (空)。`YH005_PLAN.md` (この文書) は Step 2 完了後に削除するかアーカイブに移動する。
 
 ---
 
@@ -557,8 +583,8 @@ log_r = np.diff(np.log(p))
 | 3  | CCDF P(|r| ≥ x) log-log、正規化 (mean 0, std 1) | 同左 | 同左 |
 
 - y 軸スケール: Row 1 は各モデル独立 (リターン規模が桁違いになり得る)。Row 2/3 は共通にしたい (比較が目的)。
-- 出力: `outputs/three_models_comparison.png` (300 dpi, 12×10 inches)
-- メトリクス JSON: `outputs/three_models_metrics.json` に各モデルの stylized_facts_summary。
+- 出力: `experiments/YH005/results_compare_three.png` (300 dpi, 12×10 inches)
+- メトリクス JSON: `experiments/YH005/outputs/three_models_metrics.json` に各モデルの stylized_facts_summary。
 
 ### 6.6 期待される定性的結果
 
@@ -580,10 +606,10 @@ log_r = np.diff(np.log(p))
 ### 7.2 毎ステップ (エージェント index 0..N-1 の順)
 
 意思決定フェーズ:
-- `decision_mode == 'random'` の場合、各エージェント:
-  1. `u = rng.random()` (1 回)
-  2. `position[i] == 0` かつ `u < p`: さらに `rng.random()` を 1 回 (direction 決定用)、`+1` if < 0.5 else `-1`
-  3. それ以外は direction RNG を消費しない
+- `decision_mode == 'random'` の場合、各エージェント (position は**参照しない**、§4.5 の literal 解釈):
+  1. `u = rng.random()` (1 回、常に消費)
+  2. `u < random_open_prob` のとき追加で `d = rng.random()` (1 回)、`rec = +1 if d < 0.5 else -1`
+  3. `u ≥ random_open_prob` のとき `rec = 0` (direction RNG 消費なし)
 
 履歴更新フェーズ:
 - `history_mode == 'exogenous'` の場合、step 末に **1 回**: `rng.integers(0, 5^M)` で次ステップの μ を再抽選
@@ -623,19 +649,19 @@ Step 2 完了時に以下を全て満たす:
 
 ### 8.2 Null test 再現スクリプト
 
-- `outputs/null_tests.png` が生成される
+- **`experiments/YH005/results_null_tests.png` が生成される** (既存シリーズ規約のメイン図と同格、リポジトリ直下にコミット対象)
 - `|r| ACF at lag 50`:
   - baseline: > 0.15
   - Null A: |ACF| < 0.05
   - Null B: |ACF| < 0.05
-- JSON 出力 `outputs/null_tests_metrics.json` に 3 条件分の stylized_facts_summary
+- JSON 出力 `experiments/YH005/outputs/null_tests_metrics.json` に 3 条件分の stylized_facts_summary
 
 ### 8.3 3 モデル比較図
 
-- `outputs/three_models_comparison.png` が生成される
+- **`experiments/YH005/results_compare_three.png` が生成される** (メイン図 2、コミット対象)
 - 目視確認: SG の Row 2 vol ACF が MG/GCMG より明らかに上にある (slow decay)
 - SG の Row 3 CCDF が明らかに heavier tail
-- JSON 出力 `outputs/three_models_metrics.json`
+- JSON 出力 `experiments/YH005/outputs/three_models_metrics.json`
 
 ### 8.4 T=20000, N=1000, M=5, S=2, B=9, C=3.0, seed=777 ベースライン
 
@@ -667,67 +693,70 @@ Step 2 完了時に以下を全て満たす:
 - **9-3**: `simulate.py::simulate` — ベクトル化版。§7 の RNG 消費順を厳守。
 - **9-4**: `tests/test_parity.py` — §8.1 の 5 seeds parity。**ここが通らなければ 9-5 以降に進まない。**
 - **9-5**: `analysis.py` — 5 つの stylized facts 関数。独立にテスト可能 (正規乱数で sanity check: `return_acf` が lag 1 で ~0、`volatility_acf` が ~0、`kurtosis` が ~3)。
-- **9-6**: `_mg_gcmg_baseline.py` — YH003/YH004 の importlib ラッパ。
-- **9-7**: `reproduce_null_tests.py` — 論文2 Fig. 11 再現。
-- **9-8**: `compare_three_models.py` — 3 モデル比較図。
-- **9-9**: `README.md` — §4 設計選択 + §3 仕様 + §8 検証結果。
+- **9-6**: `null_tests.py` — 論文2 Fig. 11 再現。ベースラインで `|r| ACF at lag 50 > 0.15`、Null A/B で `|ACF| < 0.05` を自動チェック (assertion ではなく print)。出力: `results_null_tests.png`, `outputs/null_tests_metrics.json`。
+- **9-7**: `_mg_gcmg_baseline.py` + **YH003/YH004 符号規約確認** + `compare_three_models.py` (3 モデル比較図)。
+  1. **符号規約チェック** (必須、wiring 前): YH003/YH004 を小規模 (`N=101, T=200, seed=42`) で走らせて `excess` の符号を観察する。Katahira 2019 Eq. (5) は「buy 優勢で D > 0」。YH003 の `simulate.py` の `excess = preds.sum()` (preds ∈ ±1) と YH004 の `excess = actions.sum()` (actions ∈ ±1, 0) は SG と同じ符号規約に見えるが、`_mg_gcmg_baseline.py` に `_assert_sign_convention()` を書いて、SG との符号整合を疎通テスト (正の正弦波的 shock を与えて D の符号が SG と一致することを確認)。必要なら `reconstruct_price()` 内で符号反転。
+  2. **メモリ規約チェック** (必須、wiring 前): YH003/YH004 が `M=5` で動作することを確認。計算量: YH003/YH004 は `2^M=32`、SG は `5^M=3125`。3 モデル T=50000 で実行時間が現実的 (SG が支配的、10 分程度を目安) か `time.perf_counter` で計測し、問題あれば M を縮小候補とする。
+  3. **`reconstruct_price(excess, N, p0)` ヘルパ**: `p = p0 + np.cumsum(excess / N)` をモジュール内で定義、3 モデル共通使用。
+  4. **3×3 図生成**: §6 のレイアウトに従う。
+- **9-8**: `baseline.py` — §8.4 ベースライン (T=20000, N=1000, M=5, S=2, B=9, C=3.0, seed=777) を走らせて stylized facts 値を表示。
+- **9-9**: `run_simulation.py` — CLI ランチャー (argparse で mode 切替)。
+- **9-10**: `README.md` — §4 設計選択 + §3 仕様 + §8 検証結果。
 
 各段階で Yuito に進捗を報告し、必要なら PR を分ける。
 
 ---
 
-## § 10. 質問・未解決事項
+## § 10. 確認済み事項 (Resolved)
 
-### 10.1 論文 PDF の入手
+Step 1 レビューで Yuito より回答を得た。以下に決定内容を記録する。
 
-論文1 (Katahira et al. 2019 Physica A) と論文2 (Katahira & Chen 2019 arXiv:1909.03185) の PDF がリポジトリに無い (YH002 と YH004 にはある)。Step 2 で詳細を参照する必要があるため、以下のいずれかを希望:
+### 10.1 論文 PDF — 解決
+Yuito が手動で `experiments/YH005/papers/` に配置する:
+- `katahira_chen_2019_physica_a.pdf` (論文 1)
+- `katahira_chen_2019_arxiv.pdf` (論文 2)
 
-- **希望 A**: PDF を `experiments/YH005/` に置いてもらう (arXiv は無料で配布可能、Physica A は著者版なら可)。
-- **希望 B**: 現状の Step 0 プロンプトに書かれた仕様記述を一次情報として実装を進める。§3 の方程式は全部プロンプトに記載済みなので実装は可能だが、曖昧な細部で論文本文を読み返す必要が出てきたら個別に質問する。
+Step 2 着手前に配置済みであること。`.gitignore` での扱いは Yuito 判断 (PDF は既に YH002, YH004 でコミットされているので同様にコミット対象とみなす)。
 
-### 10.2 Null B の current position を参照するか否か
+### 10.2 Null B の position 参照 — 解決
+**literal 解釈** (position 非参照) を採用。§4.5 を論文 literal に差し替え済み。当初指示書 2.5 は破棄。
 
-§4.5 の設計ホール。論文2 Fig. 11(b) キャプション "without referencing the price history as well as the current position" を、推奨では「戦略テーブルは使わないが position!=0 のときは close/passive hold の決定だけは position に依存する (そうでないと close できない)」と解釈した。これは論文の文言の素直な読みではない。
+### 10.3 `run_simulation.py` の扱い — 解決
+CLI ランチャーとして位置づけ。`baseline.py` / `null_tests.py` / `compare_three_models.py` を薄く呼ぶ。mode 引数で切り替え。§5.3 に仕様記載済み。
 
-選択肢:
-- **(A) 推奨通り**: position==0 のとき rec ∈ {-1, 0, +1}、position!=0 のとき rec ∈ {0, -position} (close か hold)。ラウンドトリップ構造は保持。
-- **(B) strict 解釈**: 毎ステップ独立に rec を確率的に決める、position は一切参照しない。→ 表 §3.8 の `rec == position` セル (passive_hold, 発生確率 1/3) も出現するので、close と hold と continue open が混ざる形になる。
+### 10.4 `results.png` の扱い — 解決
+2 枚構成:
+- `experiments/YH005/results_null_tests.png`
+- `experiments/YH005/results_compare_three.png`
 
-Desktop Claude / Yuito の判断を仰ぎたい。
+単一 `results.png` 規約から外れるが、Lite スコープの主要結果が 2 系統あることを README で明記。§8.2, §8.3 に記載済み。
 
-### 10.3 `run_simulation.py` の扱い
+### 10.5 S=1 の RNG 消費 — 解決
+YH003/YH004 の S=1 run でも `perturb = rng.uniform(0, 0.5, size=(N, 1))` などの RNG は消費される。動作には影響なし、README で「S=1 は inductive learning を実質無効化する」を明記。
 
-既存シリーズは `experiments/YHxxx/run_simulation.py` をメインエントリとしている。YH005 では `reproduce_null_tests.py` と `compare_three_models.py` の 2 スクリプトが実体で、`run_simulation.py` をどうするか:
+### 10.6 N=1000 — 解決
+`int64` で overflow しないので問題なし。YH003/YH004 の従来テスト値 N=101 から外れる旨は README に note。
 
-- **(A)** 両方を順に走らせるランチャーにする。
-- **(B)** `run_simulation.py` を廃止し、README に 2 スクリプトの使い方だけ書く。
-- **(C)** `run_simulation.py` = `compare_three_models.py` のエイリアス。
+### 10.7 Trial 数 — 解決
+**1 trial で進める**。理由:
+- 論文2 Fig. 11 は 1 trial 表示
+- T=50000 のサンプル数で ACF/CCDF は安定
+- r(t) 時系列は 1 trial が自然
 
-### 10.4 `results.png` の中身
-
-既存シリーズは `experiments/YHxxx/results.png` をメイン出力図として README に埋め込んでいる。YH005 では 2 つの図 (`null_tests.png`, `three_models_comparison.png`) が生成される。どちらを `results.png` にするか:
-
-- **(A)** 3 モデル比較 (SG の優位性が一目で分かる)。
-- **(B)** null tests (SG のメカニズムの検証)。
-- **(C)** 両方を縦に繋いだ compound 図。
-
-### 10.5 YH003/YH004 の S=1 動作での RNG 消費
-
-S=1 で `perturb = rng.uniform(0, 0.5, size=(N, 1))` や同様の (N, 1) 形状の RNG 消費が発生する。これ自体は動作上問題ないが、「S=1 比較」と謳うときに「inductive learning が実質無効」という主張を正確にするため、README で明記する (Yuito に共有)。
-
-### 10.6 N=1000 に揃える件
-
-YH003 の標準 N は 101、YH004 も 101 (Figure 1 再現時)。比較図では N=1000 に揃えるが、これは YH003/YH004 の従来使用から外れる。両者とも N=1000 で動く (simulate にアサーションなし)。ただし YH003 の attendance/excess は N=1000 で桁が上がり、`int64` で overflow しないかは大丈夫 (|excess| ≤ N=1000、dtype は int64)。
-
-### 10.7 3 モデル比較の trial 数
-
-Step 0 プロンプトでは「T=50000, seed=123 で 1 trial」。時間があれば 10 trial 平均が理想だが、Lite スコープでは 1 trial で十分か:
-
-- 1 trial: 高速 (1–5 分)、ただし SG の slow decay は seed によって多少ブレる。
-- 10 trial 平均: vol ACF のブレが目視で問題にならなくなる、ただし 10–50 分かかる。
-
-README に「時間があれば 10 trial 平均したい」旨の note を入れるのが §4.3 の指示だが、実際にどちらを現物として走らせるかは確認したい。
+README に「10 trial 平均は YH007 送り」と明記し、seed ループの改造点をコメントで残す。
 
 ---
 
-**以上が Step 1 の計画書。Yuito の確認・修正指示を受けて Step 2 (実装) に移行する。**
+## § 11. Step 2 で実地確認する項目 (deferred checks)
+
+Step 2-9-7 で実装着手時に確認:
+
+- **(A) YH003/YH004 の excess 符号規約**: SG の Eq. (5) (buy 優勢で D > 0) と一致するか。`_mg_gcmg_baseline.py` 内で疎通テストを書き、必要なら `reconstruct_price()` で符号反転。
+- **(B) YH003/YH004 の memory=5 での計算コスト**: 3 モデル T=50000 が現実的時間 (目標 10 分以下、SG 支配的) で走るか計測。問題あれば M を相談する。
+
+両件とも設計上は合致するはずで、実装着手時の確認で決着する見込み。
+
+---
+
+**以上が Step 1 の計画書 (改訂版)。Yuito の最終確認を経て Step 2 に移行する。**
+**絶対遵守: §9-4 の parity テストが通らない限り §9-5 以降に進まない。**
