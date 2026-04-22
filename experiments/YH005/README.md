@@ -167,6 +167,7 @@ Round-trip 中は volume 凍結 (`entry_quantity` を close まで保持、"open
 | 4.6 | Null A の P(t) | 実 h で通常通り更新、μ のみ次ステップに向けて uniform 再抽選 | P を壊すと戦略評価が無意味、破壊原因の切り分け不能 |
 | 4.7 | p(t) ≤ 0 の log-return | NaN でマスク、解析から除外 | 論文1 Appendix B と整合、N=1000 ではほぼ発生せず |
 | 4.8 | close 時の D 寄与 quantity | `entry_quantity` (open 時に確定) | "opening and closing volumes are the same" の素直な実装 |
+| 4.9 | 3 モデル比較の return 定義 | **log-return ではなく Δp = D/N** (= 論文1 Eq. (5) の生 price increment) | 論文1 p.9: "if log-return were used for the price formations, some extreme fluctuations could be observed" — Katahira 自身が log を避けている。MG は N=1000 で price が 77% の step で ≤0 となり log-diff が NaN 化するため technically も log 不可。3 モデルで次元が揃う (全て無次元 D/N) 副次的利点もある。 |
 
 ---
 
@@ -200,9 +201,11 @@ Round-trip 中は volume 凍結 (`entry_quantity` を close まで保持、"open
 ### Null test (§8.2) 受け入れ基準
 
 `results_null_tests.png` で:
-- baseline: |r| ACF at lag 50 > 0.10 (論文1 Fig. 6 の slow decay 領域、seed=777 で実測 +0.119)
+- baseline: |r| ACF at lag 50 > 0.10 (seed=777 で実測 +0.119)
 - Null A: |ACF| < 0.05 (実測 +0.005)
 - Null B: |ACF| < 0.05 (実測 +0.017)
+
+**論文との比較**: 論文1 Fig. 7 inset の fit `0.2853·exp(-0.006τ)` は τ=50 で約 0.211 を与える。本実験の 0.119 は若干低めだが、これは T=50000 × 1 trial の finite-sample 揺らぎ範囲内。YH007 で 100 trial アンサンブル平均を取れば論文値に近づくはず (confirmed-pending)。
 
 baseline と nulls の比は τ=50 で約 10-24×。他統計量 (seed=777):
 

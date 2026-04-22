@@ -128,18 +128,19 @@ def run_compare(seed: int = 123, save_dir: Path | None = None) -> dict:
         acf = volatility_acf(r, max_lag=ACF_MAX_LAG)
         lags = np.arange(1, ACF_MAX_LAG + 1)
         positive = acf > 0
-        ax.loglog(lags[positive], acf[positive], ".", markersize=3, color="tab:red")
-        # 負の点は開点で参考表示
         neg = ~positive & ~np.isnan(acf)
+        ax.loglog(lags[positive], acf[positive], ".", markersize=3,
+                  color="tab:red", label=r"$\rho_{|r|} > 0$")
         if neg.any():
             ax.loglog(lags[neg], -acf[neg], ".", markersize=3, color="lightgray",
-                      alpha=0.5, label="negative")
+                      alpha=0.5, label=r"$|\rho_{|r|}|$ where $\rho_{|r|} < 0$")
         ax.set_xlabel("lag τ (log)")
         if col == 0:
             ax.set_ylabel(r"$\rho_{|r|}(\tau)$  (log)")
         ax.grid(alpha=0.3, which="both")
         ax.axhline(0.05, color="gray", linestyle=":", linewidth=0.5)
         ax.set_ylim(1e-4, 1.0)
+        ax.legend(loc="lower left", fontsize=7, framealpha=0.7)
 
         # Row 3: CCDF of |r| normalized
         ax = axes[2, col]
