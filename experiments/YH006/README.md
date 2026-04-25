@@ -7,14 +7,17 @@ figure を LOB 世界で再現し、どの機構が LOB 微視構造下で保存
 
 詳細仕様: [`SPEC.md`](SPEC.md)
 
-## Conditions
+## Conditions — 2×2 (world × wealth), N=100 固定
 
-| ID | 世界 | SG agents | wealth 分布 | 備考 |
-|---|---|---|---|---|
-| **C0** | aggregate-demand | N=1000 | Pareto (dynamic) | YH005_1 既存 output を流用、再実行しない |
-| **C1** | LOB (PAMS) | なし | — | FCN baseline のみ |
-| **C2** | LOB (PAMS) | N=100 | 一様 | wealth heterogeneity 無し ablation |
-| **C3** | LOB (PAMS) | N=100 | Pareto α=1.5 | **主実験** |
+|  | uniform init | Pareto α=1.5 init |
+|---|---|---|
+| **aggregate-demand** | **C0u** (N=100) | **C0p** (N=100) |
+| **LOB (PAMS)** | **C2** (N=100) | **C3** (N=100, 主実験) |
+
+LOB 側には更に流動性 null として **C1** (FCN baseline, SG なし) を併走。
+
+Reference (2×2 には含めない、N scaling 補遺):
+- 旧 C0: N=1000 aggregate-demand uniform (YH005_1 output, 有限サイズ効果の基準)
 
 ## Layout
 
@@ -24,9 +27,13 @@ figure を LOB 世界で再現し、どの機構が LOB 微視構造下で保存
 - `configs/` — C1/C2/C3 の config dict 生成関数
 - `yh006_to_yh005_adapter.py` — PAMS 結果を YH005 互換 dict に変換
 - `calibrate_c_ticks.py` — C1 から C_ticks=3×median|Δmid| を較正
-- `run_experiment.py` — C1/C2/C3 の主実行エントリ
-- `compare_figure.py` — 5 figure × 4 condition = 20 panel 比較図を生成
-- `load_c0.py` — YH005_1/outputs/phase1_metrics.json を loader
+- `run_experiment.py` — C1/C2/C3 の主実行エントリ (LOB 側)
+- `aggregate_sim.py` — aggregate-demand SG simulator (YH005 simulate の
+  YH006 local fork、`wealth_mode` ∈ {uniform, pareto} 対応。uniform は
+  YH005 simulate と同 seed で bit-一致)
+- `run_aggregate_c0.py` — N=100 の C0u / C0p を生成 (2×2 aggregate 側)
+- `compare_figure.py` — 5 figure × 4 condition (2×2) の比較図生成
+- `load_c0.py` — C0u / C0p / 旧 C0 (N=1000 reference) の metrics loader
 - `smoke_test.py` — 縮小版 C3 で agent wiring sanity
 - `tests/` — parity / roundtrip invariants / wealth conservation
 - `outputs/` — 実験成果物 (git 管理外)
@@ -39,14 +46,18 @@ cd experiments/
 .venv/bin/python -u YH006/calibrate_c_ticks.py
 # outputs/C_ticks_calibration.json が出来る
 
-# 2) C1/C2/C3 を順次実行
+# 2) C1/C2/C3 を順次実行 (LOB 側)
 .venv/bin/python -u YH006/run_experiment.py \
     --num-fcn 30 --num-sg 100 \
     --warmup 200 --main 1500 \
     --max-normal-orders 500
 # outputs/C{1,2,3}_result.pkl
 
-# 3) 5×4 panel 比較図 + metrics JSON
+# 2b) C0u / C0p を N=100 で生成 (aggregate-demand 側)
+.venv/bin/python -u YH006/run_aggregate_c0.py
+# outputs/c0u_metrics.json, outputs/c0p_metrics.json + 5×2 figure
+
+# 3) 5×4 panel 比較図 + metrics JSON (2×2 cell × 5 figure)
 .venv/bin/python -u YH006/compare_figure.py
 # outputs/yh006_comparison_5x4.png, yh006_metrics.json
 
@@ -58,9 +69,11 @@ cd experiments/
 
 ## Phase 1 実行結果 (seed=777)
 
+### pre-2×2 (旧: C0=N=1000 との混成、N scaling が濁っていた)
+
 30 FCN + 100 SG × (warmup 200, main 1500), c_ticks ≈ 28.0 tick:
 
-| metric | C0 (aggregate) | C1 (LOB FCN) | C2 (LOB SG uniform) | C3 (LOB SG Pareto) |
+| metric | C0 ref (aggregate, N=1000) | C1 (LOB FCN) | C2 (LOB SG uniform, N=100) | C3 (LOB SG Pareto, N=100) |
 |---|---|---|---|---|
 | num_round_trips | 10,419,681 | 0 | 879 | 1,080 |
 | median horizon | 2.0 | — | 2.0 | 2.0 |
@@ -73,17 +86,27 @@ cd experiments/
 | passive_hold | 0.251 | 0 | 0.353 | 0.330 |
 | idle | 0.088 | — | 0.004 | 0.005 |
 
-**主要所見**:
-1. **round-trip horizon 分布が保存**: median 2.0 で C0 / C2 / C3 ほぼ同じ。
-   LOB 微視構造が SG の時間スケールを壊さない。
-2. **hold-ratio signature が LOB で強化**: passive_hold 0.25 → 0.33-0.35。
-   SG agent が「逆張りし続ける」挙動は LOB でむしろ顕著。
-3. **wealth Pareto α**: C0 は 2.54、C2/C3 は 1.9-2.0。C3 が tail 最重。
-   ただし N=100 では N=1000 に比べ tail 推定精度が低く、scaling は大きな
-   scope で要確認 (YH006 Phase 2 以降)。
-4. **corr(\|ΔG\|, horizon) の funnel 構造**: C0 0.42 → C2 0.61 で LOB が
-   相関を増幅。C3 は Pareto 初期化で散逸し 0.33 に落ちる (wealth
-   heterogeneity が ΔG スケールの分散を増やすため相関が薄まる)。
+→ aggregate vs LOB の差と N=1000 vs N=100 の差が分離できない。
+以下の 2×2 (全て N=100) で確定させる。
+
+### 2×2 (world × wealth, N=100 統一) — **TODO: `run_aggregate_c0.py` 実行後に記入**
+
+|  | uniform init | Pareto α=1.5 init |
+|---|---|---|
+| **aggregate-demand** | C0u (pending) | C0p (pending) |
+| **LOB (PAMS)** | C2 (上表流用) | C3 (上表流用) |
+
+**主要所見** (pre-2×2 ベース、2×2 で再評価予定):
+1. **round-trip horizon 分布が保存**: median 2.0 で C0 ref / C2 / C3 ほぼ同じ。
+   LOB 微視構造が SG の時間スケールを壊さない (ただし N=1000 vs N=100 混成で、
+   2×2 で N 固定して要再確認)。
+2. **hold-ratio signature が LOB で強化?**: passive_hold 0.25 → 0.33-0.35。
+   SG agent が「逆張りし続ける」挙動は LOB でむしろ顕著に見える。
+   N=100 aggregate (C0u) との比較で LOB 固有性か N 効果かを分離。
+3. **wealth Pareto α**: C0 ref 2.54 vs C2/C3 1.9-2.0 は N 差に起因の可能性大。
+   2×2 で N 固定して再確認。
+4. **corr(\|ΔG\|, horizon) の funnel 構造**: C0 ref 0.42 → C2 0.61 の増幅主張は
+   N=1000 vs N=100 の confound があるので保留。C0u / C0p で再確認。
 
 **実行時間** (Apple Silicon, single thread):
 C1 56s + C2 13s + C3 15s ≈ 1.5 分 (calibration 別途 55s)。
@@ -105,8 +128,9 @@ Smoke test 0.5s。全 test < 10s。
 
 ## 参照
 
-- YH005: `../YH005/` — aggregate-demand baseline 実装の原典
-- YH005_1: `../YH005_1/outputs/phase1_metrics.json` — C0 値の source
+- YH005: `../YH005/` — aggregate-demand baseline 実装の原典 (`aggregate_sim.py`
+  は YH005 simulate の YH006-local fork、uniform モードで bit-parity)
+- YH005_1: `../YH005_1/outputs/phase1_metrics.json` — N=1000 reference row の source
 - 共通 analysis: `../../analysis/` — stylized facts 計算群 (tail_exponent 等)
 - PAMS: https://github.com/masanorihirano/pams
 - Katahira & Chen 2019: https://arxiv.org/abs/1909.03185
