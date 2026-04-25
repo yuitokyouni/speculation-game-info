@@ -72,3 +72,46 @@
 - YH005 Lite の simulate は bit-parity 契約が重要。YH006 で論文1 全 11 stylized facts を網羅する際、simulate の RNG 順を絶対に壊さない。ログ追加だけなら parity 維持可能。
 - 設計ホール 8 項目は YH005 README で確定しているので YH006 でも同じ選択を踏襲すること。
 - round_trips / order size bucket のログ構造は YH005_1 で確立した形をそのまま使える。
+
+---
+
+## YH006 Lite — Speculation Game on LOB (PAMS) (完了, 2026-04-25)
+
+**研究設計**: 2×2 (world × wealth, N=100 統一) + LOB 流動性 null。SG decision rule (YH005) を PAMS 0.2.2 の tick-scale LOB に移植し、aggregate-demand 世界の YH005_1 Phase 1 5 figure と直接比較。
+
+**使用 parameter**:
+- LOB 側: 30 MMFCN + 100 SG, warmup=200 / main=1500, c_ticks ≈ 28.0 tick (= 3 × median|Δmid| from C1), seed=777, marketPrice=300, tickSize=1e-5
+- aggregate 側: 100 SG × T=50000, M=5, S=2, B=9, C=3.0, p0=100, seed=777 (uniform / Pareto α=1.5 xmin=9)
+- 1 trial。bootstrap CI / ensemble は Phase 2 (= YH007 以降) に送る。
+
+**確認済み (2×2 主結果)**:
+- **corr(\|ΔG\|, horizon) の交互作用 −0.27** (主 finding): aggregate では Pareto 初期化に対し robust (C0u 0.353 → C0p 0.347)、LOB では半減 (C2 0.61 → C3 0.33)。LOB が dynamic-wealth の自己組織化を弱め、初期 wealth heterogeneity を **funnel 形成の妨げに変換**する。
+- **world 効果 ≫ wealth 効果**: num_round_trips ÷10³ (LOB friction で round-trip 率が 1183x 減速)、α_hill −2 (LOB の基本 signature)、passive/active_hold 共に +0.09 (SG が約定できず holding 強制)。
+- **N scaling 補遺**: hold ratio は N 不変 (N 1000→100 で差 < 0.01)、α_hill は N 効果に強く依存 (旧表 −0.56 → 真値 −1.93、3.4x 過小評価)。**N を揃えなければ α 比較は意味がない**事実そのものが論文 material。
+
+**実装の要点**:
+- `SpeculationAgent` (pams.agents.Agent subclass): SG decision rule + MARKET_ORDER open/close + Plan A' liquidity guard (反対板 dry 時の MARKET 累積を抑制し book O(N²) 経路を回避)
+- `MMFCNAgent` (FCNAgent subclass): pams 0.2.2 の `submit_orders_by_market` が order_volume=1 ハードコードしている問題に対し、settings 経由で 30 に上げる structural workaround。論文 body では「外部流動性条件」として spec 化。
+- `history_broadcast`: 全 SG が共有する cognitive history μ(t) を Simulator attribute に貼る idempotent state
+- `aggregate_sim.py`: YH005 simulate の YH006 local fork。`wealth_mode ∈ {uniform, pareto}` 対応、uniform は YH005 と bit-parity (4 seeds 検証済)。
+- 検証 4 ファイル全 pass: aggregate parity 9 / LOB parity 2 / round-trip invariants 1 / wealth conservation 1 = 計 13 case。
+
+**失敗ルートのメモ**:
+- **両側 MARKET_ORDER は不約定**: pams/market.py:798-834 の matching engine 制約により SG-only pure-MARKET 系は LOB で round-trip が閉じない。FCN 等の外部 LIMIT 流動性層が必須 (`sg_only_smoke` で 0% fill を確認)。
+- **Plan A の book accumulation**: 反対板 dry 時に MARKET が積み上がり O(N²) 発火、runtime 300s。Plan A' の liquidity guard で 26s に短縮。
+- **N=1000 旧 C0 vs N=100 C2/C3 の混成比較**: pre-2×2 では α_hill −0.56 と読んでいたが、N effect (1000→100 で +1.37) が confound。N=100 同士で −1.93 = 真値の 3.4x 過小評価。
+- **lob_mtm の発散**: PAMS cash + asset×price が ±数千ドルにぶれる SG sizing artifact (q=⌊w/B⌋ が cost basis を LOB 単位で負にする)。`sg_wealth` (cognitive) と分離して追跡する 2-account 設計で internal logic は維持。
+
+**次フェーズ (YH007 / Phase 2) で検証したい仮説 / 引き継ぎ事項** (memo.txt 由来):
+- **bootstrap CI / 100 trial ensemble**: α_hill (n_tail=10 で誤差 ~α/√n ≈ 1.2) と corr(\|ΔG\|, h) の方向性を統計的に確定。現状 1 trial の点推定。
+- **LIMIT_ORDER open 拡張**: zero-fill open 率 ≈ 30% (流動性不足) → SG 信号の 3 割が LOB で消失。論文1 Fig 11/12/13 (asymmetry / leverage / gain-loss) の再現には致命的。MARKET-only から LIMIT mid±n% / ttl=k への拡張で改善見込み。
+- **iterative C_ticks calibration**: 現状 C1 で median|Δmid|×3 較正 → C2/C3 で再使用 (1 次近似)。SG 投入で Δmid 分布が変わるので self-consistency が崩れる。SG 投入後の price から再較正する iteration が必要。
+- **MMFCNAgent order_volume sensitivity scan**: 現状 1 点 (=30) のみ。論文 body で「外部流動性条件」として defend するには 10/30/100 等の scan が必要。
+- **warmup/main スケール依存性**: 主実験は warmup=200/main=1500 のみ。`measurement_7_all` で warmup=100/main=600 も走らせているが、本表に組み込んでいない。スケール依存補足プロットがあると堅い。
+- **lob_mtm の論文 limitation 段落**: 2-account 設計を「LOB 実装としての realism を一部諦めている」と正直に書く必要。
+
+**YH007 着手時の注意点** (これを見て重複回避):
+- **C_ticks 互換性**: YH007 で C を内生化する際、外生固定モードを残して YH006 の C_ticks ≈ 28 tick (= 3 × median|Δmid|) と数値合わせができること。bit-parity は要求しないが、内生化 mode と外生固定 mode の同一 seed run で stylized facts が連続すること。
+- **aggregate_sim parity 契約**: uniform mode × 4 seeds (1, 42, 777, 12345) で YH005 simulate と bit-parity、Pareto mode × 2 seeds で determinism、uniform vs Pareto × 3 seeds で divergence の計 9 ケース は絶対に壊さない (YH007 で aggregate_sim を継承する場合)。
+- **MMFCNAgent / SpeculationAgent / history_broadcast の設計判断**: LOB 路線を続けるなら同じ structural choices を踏襲 (両側 MARKET 不約定問題、liquidity guard、2-account wealth)。
+- **pams 0.2.2 を patch しない**: subclass + config のみ。order_volume hardcode 等は subclass で吸収。

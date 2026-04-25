@@ -25,6 +25,7 @@ from pams.logs.market_step_loggers import MarketStepSaver  # noqa: E402
 from pams.runners import SequentialRunner  # noqa: E402
 
 from configs.c3 import make_config  # noqa: E402
+from mm_fcn_agent import MMFCNAgent  # noqa: E402
 from speculation_agent import SpeculationAgent  # noqa: E402
 from yh006_to_yh005_adapter import build_yh005_compatible_dict  # noqa: E402
 
@@ -40,6 +41,7 @@ def _run_once(seed: int) -> dict:
         settings=cfg, prng=random.Random(seed), logger=saver,
     )
     runner.class_register(SpeculationAgent)
+    runner.class_register(MMFCNAgent)
     runner.main()
     return build_yh005_compatible_dict(
         runner=runner, saver=saver, warmup_steps=20, main_steps=80,

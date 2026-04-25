@@ -57,11 +57,13 @@ cd experiments/
 .venv/bin/python -u YH006/run_aggregate_c0.py
 # outputs/c0u_metrics.json, outputs/c0p_metrics.json + 5×2 figure
 
-# 3) 5×4 panel 比較図 + metrics JSON (2×2 cell × 5 figure)
+# 3) 比較図 (2×2 + 5 列 + N scaling 補遺) + metrics JSON
 .venv/bin/python -u YH006/compare_figure.py
-# outputs/yh006_comparison_5x4.png, yh006_metrics.json
+# outputs/yh006_comparison_2x2.png, yh006_comparison_5col.png,
+# outputs/yh006_appendix_N_scaling.png, yh006_metrics.json
 
 # 4) 検証
+.venv/bin/python -u YH006/tests/test_aggregate_parity.py
 .venv/bin/python -u YH006/tests/test_parity.py
 .venv/bin/python -u YH006/tests/test_roundtrip_invariants.py
 .venv/bin/python -u YH006/tests/test_wealth_conservation.py

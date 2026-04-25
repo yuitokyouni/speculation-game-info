@@ -23,6 +23,7 @@ from pams.logs.market_step_loggers import MarketStepSaver  # noqa: E402
 from pams.runners import SequentialRunner  # noqa: E402
 
 from configs.c3 import make_config  # noqa: E402
+from mm_fcn_agent import MMFCNAgent  # noqa: E402
 from speculation_agent import SpeculationAgent  # noqa: E402
 
 
@@ -33,6 +34,7 @@ def test_sg_wealth_conservation():
     saver = MarketStepSaver()
     runner = SequentialRunner(settings=cfg, prng=random.Random(777), logger=saver)
     runner.class_register(SpeculationAgent)
+    runner.class_register(MMFCNAgent)
     runner.main()
 
     sg = [a for a in runner.simulator.agents if isinstance(a, SpeculationAgent)]

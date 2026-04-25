@@ -16,7 +16,21 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
+
+try:
+    import pytest
+except ModuleNotFoundError:  # pytest 不在でも __main__ fallback で 9 ケース実行可能にする
+    class _ParametrizeStub:
+        @staticmethod
+        def parametrize(*_args, **_kwargs):
+            def _decorator(fn):
+                return fn
+            return _decorator
+
+    class _PytestStub:
+        mark = _ParametrizeStub()
+
+    pytest = _PytestStub()  # type: ignore[assignment]
 
 HERE = Path(__file__).resolve().parent
 YH006 = HERE.parent
