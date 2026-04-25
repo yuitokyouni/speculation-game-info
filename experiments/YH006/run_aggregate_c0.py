@@ -23,6 +23,7 @@ tests/test_aggregate_sim_parity.py を別途追加。
 from __future__ import annotations
 
 import json
+import pickle
 import sys
 import time
 from pathlib import Path
@@ -149,6 +150,13 @@ def run_one(wealth_mode: str, label: str, figs_dir: Path, out_dir: Path) -> dict
     with open(out_json, "w") as f:
         json.dump(_to_jsonable(metrics), f, indent=2, default=str)
     print(f"[{label}] metrics saved: {out_json}")
+
+    # raw simulate_aggregate dict も pkl で保存 (compare_figure が C0u/C0p を
+    # raw 配列で描画するため、LOB 側 c{1,2,3}_result.pkl と schema を揃える)
+    out_pkl = out_dir / f"{label}_result.pkl"
+    with open(out_pkl, "wb") as f:
+        pickle.dump(res, f, protocol=pickle.HIGHEST_PROTOCOL)
+    print(f"[{label}] raw result saved: {out_pkl}  ({out_pkl.stat().st_size / 1e6:.1f} MB)")
     return metrics
 
 
