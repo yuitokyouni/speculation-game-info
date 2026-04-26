@@ -1,6 +1,6 @@
-# 金融マーケットABMの系譜を辿る
+# 金融マーケットABM　キャッチアップ
 
-金融市場の Agent-Based Model (ABM) の主要論文を自力で Python 実装し、
+金融市場の Agent-Based Modelの主要論文をPython 実装し、
 各モデルの理論的主張を数値的に検証する。Cont-Bouchaud (1997) の
 パーコレーションモデルから Katahira et al. (2019) の Speculation Game まで、
 古典 (1997-2010) から最近の拡張までを系統的にカバーする。
