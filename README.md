@@ -58,9 +58,12 @@ python run_simulation.py
 ## 使用技術
 
 - Python 3.x
-- NumPy, SciPy, Matplotlib
-- powerlaw (Clauset-Shalizi-Newman テール推定)
-- NetworkX (ランダムグラフ生成、必要に応じて)
+- NumPy, SciPy, Matplotlib (全 YH 共通)
+- powerlaw (Clauset-Shalizi-Newman テール推定、YH001 で使用)
+- **PAMS 0.2.2** ([Hirano & Izumi 2023](https://github.com/masanorihirano/pams), YH006 の tick-scale LOB 環境)
+
+YH006 SPEC §9 で許可されているが現状未 import の package: `pandas`。
+networkx は requirements.txt から削除済 (どこにも import されていなかった)。
 
 ## ライセンス
 

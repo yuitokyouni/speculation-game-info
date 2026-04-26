@@ -2,4 +2,4 @@ numpy
 matplotlib
 scipy
 powerlaw
-networkx
+pams==0.2.2
