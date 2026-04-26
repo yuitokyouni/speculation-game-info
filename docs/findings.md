@@ -18,6 +18,64 @@
 
 ---
 
+## YH002 — Lux & Marchesi (2000) Volatility Clustering (完了, 2026-04)
+
+**使用 parameter**: Parameter Set I (p. 689): `N=500, ν1=3, ν2=2, β=6, Tc=10, Tf=5, α1=0.6, α2=0.2, α3=0.5, pf=10, σμ=0.05, Δt=0.01, Δp=0.01`。Parameter Set II–IV は実装外。
+
+**確認済み** (seed=42, T=20000):
+- **臨界値 z̄**: Appendix A の (cond 1) を解いて `z̄ = 0.660`、論文本文 0.65 と 0.01 の誤差で一致。on–off intermittency の分岐点が再現。
+- **Hill tail index**: 10% tail で `α̂_H = 1.92` が論文中央値 1.93 とほぼ完全一致、5% tail 2.40 / 2.5% tail 2.59 も論文 range (1.26, 2.64) 内。
+- **Excess kurtosis**: T=4000 で 10.19, T=20000 で 16.66 (論文 Set I の Table 2 値 135.73 には届かないが、kurtosis は単一 seed での最大級 burst 出現頻度に強く依存し、論文も中央値のみ報告)。
+- **ACF**: raw returns lag 1-2 に小さな負スパイク (論文脚注 s と整合)、squared / absolute は lag 300 まで緩やかに減衰、論文 Fig. 3 と同形状。
+
+**失敗ルートのメモ**:
+- **ADF**: T=20000 では検出力が高く unit root を棄却 (`ADF stat = -87.0`)。論文 Table 1 の "non-rejection" は **500-obs subsample 設計由来の低検出力** ゆえで、母過程は stationary。一括 T=20000 で走らせるなら ADF を再現基準にしない (memo.txt に記載)。
+- **価格更新の確率規約**: opinion/strategy 個体遷移は `rate × Δt` 形式だが、価格上昇/下降確率 `π_↑p, π_↓p` は `β(ED + μ)` をそのまま 1 ステップ確率として使う (論文 p.687 脚注 n: cents 単位で 100 割が組み込み済)。混同すると価格応答が 100 倍ずれる。
+
+**保留**: Parameter Set II-IV / 適応 Δt 切り替え / Lux 1995, Lux-Marchesi 1999 Nature の定式化は意図的に除外。
+
+---
+
+## YH003 — Challet & Zhang (1997) Minority Game (完了, 2026-04)
+
+**使用 parameter**: `(N, S) = (101, 2)` for σ²/N 相図、`(1001, 5)` for 詳細解析。`M ∈ [1, 12]`, `T_burn = 500-1000, T_measure = 5000-10000`, ensemble 10 trial (Panel 1)。
+
+**確認済み** (seed=42):
+- **σ²/N 相図 (Panel 1)**: N=101 の離散サンプリングで `σ²/N` 最小値 = **0.268 at α = 0.634 (M=6)`、典型的な U 字 (log-log)。Savit ら 1999 の `α_c ≈ 0.337` と離散ステップ込みで整合。
+- **Crowded regime**: M ≤ 4 で σ²/N ≫ 1 (戦略空間 2^M が N に対し狭く、戦略共有率が高い)。
+- **Random regime**: M = 12 (α = 40.5) で σ²/N = 0.968、ランダム極限 1.0 に漸近。Success rate も M=10 で 0.485 とほぼ 0.5。
+- **Aggregate 対称性**: A(t) 平均 = 499.75 (N/2 = 500.5)、skew = -0.021 で対称。
+- **Score 広がりのスケーリング**: 中心化スコアの std が `√(t/4)` 的に広がり (Panel 5)、`t = 1000 → 10000` で √10 倍を目視確認。best-strategy 選択が情報を持つ機構の数値裏付け。
+
+**設計判断** (YH004/YH005 への共通基盤として固定):
+- 行動 = ±1 (符号演算でスコア更新)、履歴 = 整数 μ ∈ [0, 2^M-1] の右シフト + mask、戦略テーブル = (N, S, 2^M) int8、同点破り = `argmax(scores + U[0, 0.5))` で同点組のみランダム化。
+- `Agent.decide()` は `(action, s_idx)` を返す形に統一 (YH004 の `action ∈ {-1, 0, +1}` 拡張、YH005 の signal-based score update へ最小改変で移行可能)。
+
+**保留**: 戦略の進化・淘汰 (Challet-Zhang §4 以降) / 熱的ノイズ付き softmax 選択 / 応答関数 / χ² order parameter 解析は意図的に除外。
+
+---
+
+## YH004 — Jefferies et al. (2001) Grand-Canonical MG (完了, 2026-04)
+
+**使用 parameter**: `N=101 (主), 1001 (Panel 4), M=2-10, S=2, T_win=50, r_min ∈ [-T, T] sweep`、5 trial ensemble (Panel 1/2)。動的モードは `λ ∈ {0.5, 1.5, 3.0}`。
+
+**確認済み** (seed=42):
+- **Figure 1 転移曲線**: ⟨N_active⟩ が r_min を上げるにつれ N → 0 へ単調降下、σ[N_active] は中間 r_min でピーク。形状一致。
+- **Fat tails の発現**: Panel 4 で MG (`r_min=-T-1`) excess kurtosis = **−0.91 (sub-Gaussian)** vs GCMG (`r_min=0.3T`) = **+41.3 (強い fat tail)**。MG の少数派制約は aggregate を押し戻すのに対し、GCMG は静穏期 → 同時参加 → burst の生成機構が効く (論文 §2.2 の主張の定量裏付け)。
+- **σ²/N 相図反転** (Panel 5): Crowded 相 (α=0.317) で MG=1.46 vs GCMG=4.10 (GCMG が volatile、相関した participate/abstain スイッチング)、Dilute 相 (α=10.14) で MG=1.02 vs GCMG=0.57 (弱い戦略 agent が abstain して参加減)。
+- **YH003 同値サニティ**: `T_win ≥ T_total` かつ `r_min < -T_win` で全期間 active=N, σ²/N=0.257 (YH003 の 0.268 とほぼ一致、不一致分は perturb/abstain RNG 消費順差)。
+
+**失敗ルートのメモ**:
+- **二項近似との乖離**: 論文 p.5 の独立二項 RW 近似 `⟨N_active⟩ ≈ N(1 - P^s)` は crowded 相で大きくズレる (本実験で sim 転移点 ≈ -5、理論 ≈ +5)。論文も `T ≫ 2^m` を前提にしており本実験の `T/2^m = 12.5` は近似が悪い域。crowded 相では r_S が強く mean-reverting し独立 RW から外れる、と読む。
+
+**設計判断**:
+- スコアは signed (+1/-1)、ring buffer (T_win, N, S) int8 で集計。
+- `BaseMGAgent` を YH003-005 共通インタフェースとして切り出し、YH004 は `GCMGAgent(BaseMGAgent)` で abstain 判定だけ追加。
+
+**保留**: §2.3 wealth heterogeneity / value-trend mix / §3.2 market-maker (Bouchaud-Cont-Farmer) / Figure 3-5 / §4 real data ($/Yen) 予測は対象外。一部は YH005 (SG) で扱う。
+
+---
+
 ## YH005 Lite — Speculation Game 最小実装 + 3 モデル比較 (完了, 2026-04)
 
 **使用 parameter**: `N=1000, M=5, S=2, B=9, C=3.0, p0=100.0`。log-return ではなく `Δp = D/N` を使う (論文1 Eq. 5 準拠、p ≤ 0 問題回避)。
