@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -47,6 +48,8 @@ def simulate_aggregate(
     wealth_mode: str = "uniform",
     pareto_alpha: float = 1.5,
     pareto_xmin: int = 9,
+    snapshot_callback: Optional[Callable[[int, np.ndarray], None]] = None,
+    log_substitutes: bool = False,
 ) -> dict:
     """SG decision rule を aggregate-demand 世界で走らせる。
 
@@ -54,6 +57,16 @@ def simulate_aggregate(
     `wealth_mode="pareto"` は inverse-CDF で `w_i = xmin * U_i^{-1/alpha}`
     を初期 wealth に使い、以後は YH005 と同じダイナミクスを走らせる
     (bankruptcy substitute の新 wealth は uniform のまま — YH005 の規約通り)。
+
+    Phase 2 後方互換拡張 (YH006_1 S2 plan v2 修正 1):
+      - `snapshot_callback` (default None): 渡された場合、毎 step で
+        `t % max(T // 10, 1) == 0` の時に `snapshot_callback(t, w.copy())` を呼ぶ。
+        callee 側で wealth_snapshots に追記する想定。RNG state は消費しない (副作用のみ)。
+      - `log_substitutes` (default False): True の場合、bankruptcy substitute 発生時に
+        `(t, agent_idx, dead_w, new_w)` を返り dict の `substitute_events` キーに追記。
+        default False では返り dict に `substitute_events` キーは出ない (= 既存テスト互換)。
+
+    両引数の default 経路は既存挙動と完全 bit-一致。
     """
     assert history_mode in ("endogenous", "exogenous")
     assert decision_mode in ("strategy", "random")
@@ -112,10 +125,18 @@ def simulate_aggregate(
     rt_entry_quantity: list[int] = []
     rt_delta_G: list[int] = []
 
+    # Phase 2 後方互換拡張 (snapshot_callback / log_substitutes、default は no-op)
+    _substitute_events: list[tuple[int, int, int, int]] = []  # (t, agent_idx, dead_w, new_w)
+    _snapshot_period = max(T // 10, 1)
+
     arange_N = np.arange(N)
 
     for t in range(T):
         mu_t = mu
+
+        # Phase 2 wealth_ts hook: T/10 step ごと (default callback=None で no-op)
+        if snapshot_callback is not None and t % _snapshot_period == 0:
+            snapshot_callback(t, w.copy())
 
         if decision_mode == "strategy":
             recs = strategies[arange_N, active_idx, mu_t].astype(np.int8, copy=True)
@@ -209,6 +230,9 @@ def simulate_aggregate(
                 new_strategies = rng.choice([-1, 0, 1], size=(S, K)).astype(np.int8)
                 new_w = int(B) + int(rng.integers(0, 100))
                 new_active = int(rng.integers(0, S))
+                # Phase 2 substitute logging (default log_substitutes=False で no-op)
+                if log_substitutes:
+                    _substitute_events.append((int(t), int(i), int(w[i]), int(new_w)))
                 strategies[i] = new_strategies
                 w[i] = new_w
                 active_idx[i] = new_active
@@ -251,7 +275,7 @@ def simulate_aggregate(
     }
     num_orders_by_size = num_orders_by_size_buy + num_orders_by_size_sell
 
-    return {
+    out = {
         "prices": prices,
         "h_series": h_series,
         "cognitive_prices": cognitive_prices,
@@ -267,3 +291,7 @@ def simulate_aggregate(
         "num_orders_by_size_buy": num_orders_by_size_buy,
         "num_orders_by_size_sell": num_orders_by_size_sell,
     }
+    # Phase 2 後方互換: log_substitutes=True の時だけ追加 key を出す
+    if log_substitutes:
+        out["substitute_events"] = _substitute_events
+    return out

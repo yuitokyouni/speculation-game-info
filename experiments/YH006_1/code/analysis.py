@@ -79,6 +79,24 @@ def bin_variance_slope(h: np.ndarray, dG: np.ndarray, K: int = 15) -> float:
     return float(res.correlation) if not np.isnan(res.correlation) else float("nan")
 
 
+def bin_variance_slope_pooled(rt_df: pd.DataFrame, K: int = 15) -> float:
+    """100 trial 全 RT を pool した上で 1 回 bin variance slope を計算 (S2 plan v2 修正 1)。
+
+    trial-level の `bin_variance_slope` を 100 個平均する代わりに、全 trial の RT を
+    先に concat してから bin slicing + Var(log|ΔG|) を計算。
+    bin 内 sample 数 ×100 → bin variance 推定の SE が √100 = 10 倍縮む。
+
+    Args:
+      rt_df: 全 trial concat 済の DataFrame (列: "horizon", "delta_g")
+      K: 数の log-equal bin 数 (default 15)
+    """
+    if "horizon" not in rt_df.columns or "delta_g" not in rt_df.columns:
+        return float("nan")
+    h = rt_df["horizon"].to_numpy(dtype=np.float64)
+    dG = rt_df["delta_g"].to_numpy(dtype=np.float64)
+    return bin_variance_slope(h, dG, K=K)
+
+
 def quantile_slopes(
     h: np.ndarray,
     dG: np.ndarray,

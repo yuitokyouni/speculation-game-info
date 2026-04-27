@@ -153,34 +153,39 @@ def _hill_alpha_p90(final_wealth: np.ndarray) -> float:
 
 def integrity_check(
     cond: str, pkl_path: Path, logger: logging.Logger,
-) -> Optional[Dict[str, Any]]:
-    """Return loaded pkl dict if all checks pass, else None."""
+) -> Dict[str, Any]:
+    """Return loaded pkl dict if all checks pass, else raise.
+
+    最終実装 (plan v2 §1 注意点 1): 4 条件揃った前提。pkl 不在 / size 不足 /
+    schema 不整合 / RT 数不一致 はすべて例外で停止。
+    """
     if not pkl_path.exists():
-        logger.warning(f"[integrity] {cond}: pkl missing at {pkl_path} — skipping (ガード節)")
-        return None
+        raise FileNotFoundError(
+            f"[integrity] {cond}: pkl missing at {pkl_path}. "
+            f"4 conditions are required; transfer C2/C3 from Mac to "
+            f"experiments/YH006_1/data/_phase1_imported/."
+        )
     file_size_mb = pkl_path.stat().st_size / 1e6
     if file_size_mb < EXPECTED[cond]["min_size_mb"]:
-        logger.error(
-            f"[integrity] {cond}: file_size = {file_size_mb:.3f} MB < expected min {EXPECTED[cond]['min_size_mb']} MB"
+        raise ValueError(
+            f"[integrity] {cond}: file_size = {file_size_mb:.3f} MB < "
+            f"expected min {EXPECTED[cond]['min_size_mb']} MB. pkl may be truncated."
         )
-        return None
     logger.info(f"[integrity] {cond}: file_size = {file_size_mb:.2f} MB OK")
 
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
 
     if "round_trips" not in data:
-        logger.error(f"[integrity] {cond}: pkl missing 'round_trips' key")
-        return None
+        raise KeyError(f"[integrity] {cond}: pkl missing 'round_trips' key")
     n_rt = int(data["round_trips"]["close_t"].size)
     expected_rt = EXPECTED[cond]["num_round_trips"]
     rel_err = abs(n_rt - expected_rt) / max(expected_rt, 1)
     if rel_err > 0.01:
-        logger.error(
+        raise ValueError(
             f"[integrity] {cond}: num_round_trips mismatch — got {n_rt}, "
             f"expected {expected_rt} (rel_err={rel_err:.4f}) > 1%"
         )
-        return None
     logger.info(
         f"[integrity] {cond}: num_round_trips = {n_rt} (expected {expected_rt}, rel_err={rel_err:.5f}) OK"
     )
@@ -527,30 +532,21 @@ def plot_indicator_comparison(
     ax_main.legend(loc="best", fontsize=9)
 
     ax_inter = axes[1]
-    if interactions:
-        i_vals = [interactions.get(ind, np.nan) for ind in indicators]
-        bars = ax_inter.bar(
-            x, i_vals, color=["#444"] * n_ind,
-            edgecolor="black",
-        )
-        for bar, v in zip(bars, i_vals):
-            if np.isfinite(v):
-                ax_inter.text(bar.get_x() + bar.get_width() / 2, v,
-                              f"{v:+.3f}", ha="center",
-                              va="bottom" if v >= 0 else "top", fontsize=9)
-        ax_inter.set_xticks(x)
-        ax_inter.set_xticklabels([indicator_labels[i] for i in indicators], rotation=15)
-        ax_inter.axhline(0, color="black", linewidth=0.5)
-        ax_inter.set_ylabel("interaction\n(C3-C2)-(C0p-C0u)")
-        ax_inter.set_title(
-            "Interaction (4 conditions required; gated until C2/C3 transferred)"
-        )
-    else:
-        ax_inter.text(0.5, 0.5,
-                      "interaction skipped — C2/C3 pkl not yet imported",
-                      ha="center", va="center", transform=ax_inter.transAxes,
-                      fontsize=11, color="#888")
-        ax_inter.set_xticks([]); ax_inter.set_yticks([])
+    i_vals = [interactions.get(ind, np.nan) for ind in indicators]
+    bars = ax_inter.bar(x, i_vals, color=["#444"] * n_ind, edgecolor="black")
+    for bar, v in zip(bars, i_vals):
+        if np.isfinite(v):
+            ax_inter.text(bar.get_x() + bar.get_width() / 2, v,
+                          f"{v:+.3f}", ha="center",
+                          va="bottom" if v >= 0 else "top", fontsize=9)
+    ax_inter.set_xticks(x)
+    ax_inter.set_xticklabels([indicator_labels[i] for i in indicators], rotation=15)
+    ax_inter.axhline(0, color="black", linewidth=0.5)
+    ax_inter.set_ylabel("interaction\n(C3-C2)-(C0p-C0u)")
+    ax_inter.set_title(
+        "Interaction = (C3 − C2) − (C0p − C0u)  "
+        "(point estimates; CI is S1-secondary scope)"
+    )
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=120, bbox_inches="tight")
@@ -567,7 +563,6 @@ def write_readme(
     out_path: Path,
 ) -> None:
     n_loaded = len(loaded_conds)
-    full_run = (n_loaded == 4)
     lines: List[str] = []
     lines.append("# YH006_1 — Phase 2 結果サマリ")
     lines.append("")
@@ -577,11 +572,6 @@ def write_readme(
         f"**実行範囲**: {n_loaded} / 4 条件で完走 ("
         + ", ".join(loaded_conds) + ")"
     )
-    if not full_run:
-        lines.append(
-            "**注意**: C2/C3 pkl 転送待ちのため interaction 計算は gated。"
-            "aggregate 2 条件で sanity check のみ完了 (5 指標 + 桁感)。"
-        )
     lines.append("")
     lines.append("### 5 主指標 (点推定、CI は S1-secondary で取る)")
     lines.append("")
@@ -598,27 +588,16 @@ def write_readme(
             f"{m['bin_var_slope']:.4f} | {m['qreg_slope_diff']:.4f} |"
         )
     lines.append("")
-    if interactions:
-        lines.append("### Interaction = (C3 − C2) − (C0p − C0u)")
-        lines.append("")
-        lines.append("| indicator | full | first half | second half |")
-        lines.append("|---|---:|---:|---:|")
-        for ind in MAIN_INDICATORS:
-            v = interactions.get(ind, float("nan"))
-            v1 = interactions.get(f"{ind}_first_half", float("nan"))
-            v2 = interactions.get(f"{ind}_second_half", float("nan"))
-            lines.append(
-                f"| {ind} | {v:+.4f} | {v1:+.4f} | {v2:+.4f} |"
-            )
-        lines.append("")
-    else:
-        lines.append("### Interaction")
-        lines.append("")
-        lines.append(
-            "C2/C3 pkl 転送待ち、interaction 計算は gated。"
-            "Mac 側で pkl 配置後、本 script を再実行で完走する。"
-        )
-        lines.append("")
+    lines.append("### Interaction = (C3 − C2) − (C0p − C0u)")
+    lines.append("")
+    lines.append("| indicator | full | first half | second half |")
+    lines.append("|---|---:|---:|---:|")
+    for ind in MAIN_INDICATORS:
+        v = interactions.get(ind, float("nan"))
+        v1 = interactions.get(f"{ind}_first_half", float("nan"))
+        v2 = interactions.get(f"{ind}_second_half", float("nan"))
+        lines.append(f"| {ind} | {v:+.4f} | {v1:+.4f} | {v2:+.4f} |")
+    lines.append("")
     lines.append("### Plan B 先取り指標")
     lines.append("")
     lines.append("| cond | corr(w_init, h) | skew(high − low) | Hill α (|ΔG|) |")
@@ -669,22 +648,16 @@ def main() -> None:
     logger.info("=" * 70)
 
     # ---- Step 1: integrity check + load ----
+    # 最終実装 (plan v2 §1 注意点 1): 4 条件揃った前提、不在は raise。
     logger.info("--- Step 1: pkl integrity check + load ---")
     loaded: Dict[str, Dict[str, Any]] = {}
     for cond in CONDITIONS:
         pkl_path = DATA_DIR / PKL_FILENAMES[cond]
-        data = integrity_check(cond, pkl_path, logger)
-        if data is not None:
-            loaded[cond] = data
-    if not loaded:
-        logger.error("No conditions loaded — aborting.")
-        return
-    if len(loaded) < 4:
-        missing = [c for c in CONDITIONS if c not in loaded]
-        logger.warning(
-            f"4 条件未揃: missing = {missing}. ガード節で interaction 計算を skip "
-            "(plan v2 §1 注意点 1)。"
-        )
+        loaded[cond] = integrity_check(cond, pkl_path, logger)
+    assert len(loaded) == 4, (
+        f"expected all 4 conditions loaded, got {len(loaded)}: "
+        f"{list(loaded.keys())}"
+    )
 
     # ---- Step 2: schema adapter ----
     logger.info("--- Step 2: Phase 1 → Phase 2 schema adapter ---")
@@ -742,23 +715,17 @@ def main() -> None:
                 f"qreg={vals['qreg_slope_diff']:+.4f}"
             )
 
-    # ---- Step 5: interaction ----
+    # ---- Step 5: interaction (4 条件揃った前提) ----
     logger.info("--- Step 5: interaction calculation ---")
     interactions: Dict[str, float] = {}
-    if len(loaded) == 4:
+    for ind in MAIN_INDICATORS:
+        interactions[ind] = compute_interaction(metrics, ind)
+    for half in ("first_half", "second_half"):
+        ts_metrics = {c: timescale[c][half] for c in CONDITIONS}
         for ind in MAIN_INDICATORS:
-            interactions[ind] = compute_interaction(metrics, ind)
-        for half in ("first_half", "second_half"):
-            ts_metrics = {c: timescale[c][half] for c in CONDITIONS}
-            for ind in MAIN_INDICATORS:
-                interactions[f"{ind}_{half}"] = compute_interaction(ts_metrics, ind)
-        for k, v in interactions.items():
-            logger.info(f"  interaction[{k}] = {v:+.4f}")
-    else:
-        logger.warning(
-            "Skipping interaction (gated): only %d of 4 conditions loaded.",
-            len(loaded),
-        )
+            interactions[f"{ind}_{half}"] = compute_interaction(ts_metrics, ind)
+    for k, v in interactions.items():
+        logger.info(f"  interaction[{k}] = {v:+.4f}")
 
     # ---- Step 6: outputs (csv + figure + README) ----
     logger.info("--- Step 6: outputs ---")
