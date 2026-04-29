@@ -35,10 +35,10 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 YH006_1 = HERE.parent
-if str(HERE) not in sys.path:
-    sys.path.insert(0, str(HERE))
-if str(YH006_1) not in sys.path:
-    sys.path.insert(0, str(YH006_1))
+for _p in (str(YH006_1), str(HERE)):
+    while _p in sys.path:
+        sys.path.remove(_p)
+    sys.path.insert(0, _p)
 
 from analysis import (  # noqa: E402
     corr_pearson, corr_spearman, corr_kendall,

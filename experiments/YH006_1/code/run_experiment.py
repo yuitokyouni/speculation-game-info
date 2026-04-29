@@ -302,6 +302,32 @@ def run_lob_trial_smoke(
 
 
 # ---------------------------------------------------------------------------
+# LOB full-length runner (S3 plan v2 §3.2、Mac でのみ実行可、PAMS 必要)
+# ---------------------------------------------------------------------------
+
+def run_lob_trial(cond_name: str, seed: int) -> SimResult:
+    """LOB full-length 1 trial (warmup=200, main=1500、Phase 1 default 設定)。
+
+    `run_lob_trial_smoke` を `LOB_PARAMS` で driven。wealth_ts は終了時 1 snapshot
+    のみ取る (smoke と同じ実装)。corr_winit_wt_T1..T10 は同じ値 (= corr(w_init,
+    w_final)) に degenerate するが、aggregate との比較は trial-level で十分機能する
+    (S2 plan §3.2 の検討事項参照)。複数 snapshot 取得は将来 stage で必要なら custom
+    Saver で実装、本 S3 では scope 外。
+    """
+    from config import LOB_PARAMS  # noqa: E402
+    p = LOB_PARAMS
+    return run_lob_trial_smoke(
+        cond_name, seed,
+        warmup_steps=p["warmup_steps"],
+        main_steps=p["main_steps"],
+        num_fcn=p["num_fcn"],
+        num_sg=p["N_sg"],
+        max_normal_orders=p["max_normal_orders"],
+        c_ticks=p["c_ticks"],
+    )
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -313,12 +339,10 @@ def run_one_trial(
     if cond.world == "agg":
         result = run_aggregate_trial(cond_name, seed)
     elif cond.world == "lob":
-        if not is_lob_smoke:
-            raise NotImplementedError(
-                f"LOB full run (cond={cond_name}) は S3 plan で実装。"
-                f"S2 では LOB smoke のみ (is_lob_smoke=True で呼ぶ)。"
-            )
-        result = run_lob_trial_smoke(cond_name, seed)
+        if is_lob_smoke:
+            result = run_lob_trial_smoke(cond_name, seed)
+        else:
+            result = run_lob_trial(cond_name, seed)
     else:
         raise ValueError(f"unknown world: {cond.world}")
 
