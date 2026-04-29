@@ -27,7 +27,7 @@ HERE = Path(__file__).resolve().parent
 YH006_1 = HERE.parent
 YH006 = YH006_1.parent / "YH006"
 YH005 = YH006_1.parent / "YH005"
-for p in (YH006, YH006_1, YH005):
+for p in (YH006, YH006_1, YH005, HERE):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
