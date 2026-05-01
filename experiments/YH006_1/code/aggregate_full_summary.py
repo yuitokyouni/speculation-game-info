@@ -161,7 +161,17 @@ def lob_diff_bootstrap(
 def lifetime_evidence_table(
     df: pd.DataFrame, seeds: List[int], logger: logging.Logger,
 ) -> pd.DataFrame:
-    """4 条件 lifetime distribution を計算、仮説 A primary evidence 判定 (§3.8)."""
+    """4 条件 lifetime distribution + 仮説 A primary evidence 判定 (§3.8、v2 修正 2).
+
+    Mac stage の Yuito 判断 (2026-04-30) で **主指標切替** 確定:
+      - 主指標 1: p25 lifetime (右端 censoring に頑健、tail composition 差を捕捉)
+      - 主指標 2: conditional median (uncensored sample のみ、退場 agent の中央値)
+      - 主指標 3: censoring 率 (sample-level、sim 終了時生存 sample の比率)
+      - 補助:    median, p90 (T 張り付きで discrimination 不能、参考値)
+
+    censoring 率は `lifetimes_*.parquet` の `censored` 列から sample-level で計算 (trial-level
+    の median > T/2 件数とは別物)。
+    """
     rows = []
     for cond in ALL_CONDS:
         sub = df[df["cond"] == cond]
@@ -171,35 +181,41 @@ def lifetime_evidence_table(
         median_arr = sub["lifetime_median"].dropna().to_numpy()
         p90_arr = sub["lifetime_p90"].dropna().to_numpy()
         n_above = int((median_arr > T_cond / 2).sum()) if median_arr.size else 0
-        # conditional median + p25 を生 sample から取るには各 trial の lifetime parquet を
-        # 読み直す必要があり時間がかかる。本 step 1 では trial-level summary 経由で
-        # lifetime_median 自体が censored sample 含みで集計済 (S2 plan v2 §0.7)、
-        # 「conditional median = censored sample 除く median」「p25 = 全 sample p25」を
-        # 出すには改めて lifetime parquet を読み込む必要がある (下で実装)。
-        cond_median, p25 = _read_conditional_lifetime_stats(cond, seeds, T_cond)
+        # 主指標 (3): conditional median, p25, censoring 率 — sample-level で取得
+        cond_median, p25, censoring_rate, n_total_samples = (
+            _read_conditional_lifetime_stats(cond, seeds, T_cond)
+        )
         rows.append({
             "cond": cond,
             "T": T_cond,
             "n_trials": len(sub),
+            # --- primary indicators (Yuito 2026-04-30 mandate) ---
+            "p25_pooled": p25,
+            "conditional_median": cond_median,
+            "censoring_rate": censoring_rate,
+            # --- auxiliary (T 張り付きで discrimination 不能、参考のみ) ---
             "lifetime_median_mean": float(np.mean(median_arr)) if median_arr.size else float("nan"),
             "lifetime_p90_mean": float(np.mean(p90_arr)) if p90_arr.size else float("nan"),
             "n_above_T_half": n_above,
-            "frac_above_T_half": n_above / max(len(sub), 1),
-            "conditional_median": cond_median,
-            "p25_alllifetime": p25,
+            "n_total_samples": n_total_samples,
         })
         logger.info(
-            f"[lifetime] {cond} T={T_cond}: median_mean={rows[-1]['lifetime_median_mean']:.1f}, "
-            f"n_above_T/2={n_above}/{len(sub)}, "
-            f"conditional_median={cond_median:.1f}, p25={p25:.1f}"
+            f"[lifetime] {cond} T={T_cond}: "
+            f"PRIMARY p25={p25:.1f}, cond_median={cond_median:.1f}, "
+            f"censoring={censoring_rate:.1%} (n_samples={n_total_samples}); "
+            f"AUX median_mean={rows[-1]['lifetime_median_mean']:.1f}, "
+            f"n_above_T/2={n_above}/{len(sub)}"
         )
     return pd.DataFrame(rows)
 
 
 def _read_conditional_lifetime_stats(
     cond: str, seeds: List[int], T_cond: int,
-) -> Tuple[float, float]:
-    """Lifetime parquet から conditional median (censored 除外) + p25 を計算."""
+) -> Tuple[float, float, float, int]:
+    """Lifetime parquet から conditional median (censored 除外) + p25 + censoring 率を計算.
+
+    Returns: (conditional_median, p25_pooled, censoring_rate, n_total_samples)
+    """
     cond_dir = DATA_DIR / cond
     all_lifetimes: List[float] = []
     all_censored: List[bool] = []
@@ -216,35 +232,61 @@ def _read_conditional_lifetime_stats(
         else:
             all_censored.extend([False] * len(lt_df))
     if not all_lifetimes:
-        return (float("nan"), float("nan"))
+        return (float("nan"), float("nan"), float("nan"), 0)
     arr = np.array(all_lifetimes, dtype=np.float64)
     cens = np.array(all_censored, dtype=bool)
     p25 = float(np.percentile(arr, 25))
+    censoring_rate = float(cens.mean()) if cens.size else float("nan")
     if (~cens).sum() > 0:
         cond_median = float(np.median(arr[~cens]))
     else:
         cond_median = float("nan")
-    return (cond_median, p25)
+    return (cond_median, p25, censoring_rate, int(arr.size))
 
 
 def hypothesis_A_evidence(lifetime_df: pd.DataFrame) -> Tuple[bool, str]:
-    """§3.8 v2 修正 2: 仮説 A primary evidence 判定."""
-    lob_above = sum(
-        int(r["n_above_T_half"]) for _, r in lifetime_df.iterrows()
-        if r["cond"] in LOB_CONDS
-    )
+    """§3.8 v2 修正 2 + Mac stage Yuito mandate: 仮説 A 中間予測 primary evidence 判定.
+
+    判定軸 (Yuito 2026-04-30 mandate に従い):
+      - aggregate (T=50000): censoring_rate ≪ 1、退場 dynamics が active
+      - LOB (T=1500): censoring_rate >> aggregate なら friction が turnover を抑制
+      - C2 vs C3 の p25 対比で wealth-tail composition が persist しているか確認
+
+    primary evidence 確定基準: LOB の **trial-level median > T/2 件数** が 50/100 以上、
+    または **sample-level censoring_rate が aggregate より顕著に高い** (差 > 0.5)。
+    """
+    agg_cens = lifetime_df[lifetime_df["cond"].isin(AGG_CONDS)]["censoring_rate"].mean()
+    lob_cens = lifetime_df[lifetime_df["cond"].isin(LOB_CONDS)]["censoring_rate"].mean()
+    cens_gap = lob_cens - agg_cens
     n_lob_trials = sum(
         int(r["n_trials"]) for _, r in lifetime_df.iterrows()
         if r["cond"] in LOB_CONDS
     )
-    threshold = max(1, n_lob_trials // 4)  # 50/200 = 25% を threshold (≥ half of half)
-    is_evidence = lob_above >= 50 * (n_lob_trials // 100)  # ≥50/100 per cond ≈ ≥100/200 total
+    n_lob_above = sum(
+        int(r["n_above_T_half"]) for _, r in lifetime_df.iterrows()
+        if r["cond"] in LOB_CONDS
+    )
+    is_evidence = (n_lob_above >= n_lob_trials // 2) or (cens_gap > 0.5)
+
+    # tail composition 対比 (C2 vs C3 p25)
+    c2 = lifetime_df[lifetime_df["cond"] == "C2"]
+    c3 = lifetime_df[lifetime_df["cond"] == "C3"]
+    p25_contrast = ""
+    if len(c2) and len(c3):
+        c2_p25 = float(c2["p25_pooled"].iloc[0])
+        c3_p25 = float(c3["p25_pooled"].iloc[0])
+        p25_contrast = f" / C2 p25={c2_p25:.1f} vs C3 p25={c3_p25:.1f}"
+
     if is_evidence:
-        msg = (f"LOB lifetime_median > T/2 が {lob_above}/{n_lob_trials} trial で発生 "
-               f"→ **仮説 A 中間予測の primary evidence 確定**")
+        msg = (f"LOB censoring_rate={lob_cens:.1%} vs agg {agg_cens:.1%} "
+               f"(gap={cens_gap:+.1%}), median>T/2 trial 件数={n_lob_above}/{n_lob_trials}"
+               f"{p25_contrast} "
+               f"→ **仮説 A 中間予測の primary evidence 確定** (LOB friction が agent turnover を抑制、tail composition persist)")
     else:
-        msg = (f"LOB lifetime_median > T/2 が {lob_above}/{n_lob_trials} trial にとどまる "
-               f"(<50%/cond)、補助 mechanism signal 程度")
+        msg = (f"LOB censoring_rate={lob_cens:.1%} vs agg {agg_cens:.1%} "
+               f"(gap={cens_gap:+.1%}), median>T/2 trial 件数={n_lob_above}/{n_lob_trials}"
+               f"{p25_contrast} "
+               f"→ 補助 mechanism signal にとどまる (primary evidence 基準未達)")
     return (is_evidence, msg)
 
 
@@ -400,7 +442,7 @@ def plot_lifetime_distributions(
         ax.set_title(f"{cond} (T={T_cond}, n_samples={len(arr):,})", fontsize=10)
         ax.set_xlabel("lifetime (steps)"); ax.set_ylabel("count")
         ax.legend(fontsize=8)
-    fig.suptitle("S3 — 4 条件 lifetime distributions (仮説 A primary evidence、§3.8 v2 修正 2)",
+    fig.suptitle("S3 — 4-cond lifetime distributions (Hypothesis A primary evidence, plan v2 §3.8)",
                  fontsize=12)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(out_path, dpi=120, bbox_inches="tight")
@@ -477,18 +519,31 @@ def append_readme(
                      f"{r['ci_lo']:+.4f} | {r['ci_hi']:+.4f} | {int(r['n'])} |")
     lines.append("")
 
-    # Lifetime evidence
+    # Lifetime evidence (Yuito 2026-04-30 mandate: 主指標切替後)
     lines.append("### Lifetime distribution: 仮説 A 中間予測 primary evidence (§3.8、修正 2)")
     lines.append("")
-    lines.append("| cond | T | n_trials | lifetime_median_mean | n_above_T/2 | conditional_median | p25 |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|")
+    lines.append("**主指標 (Yuito mandate 2026-04-30)**: p25 / conditional median / censoring 率 — "
+                 "median と p90 は LOB で T 張り付くため補助。")
+    lines.append("")
+    lines.append("| cond | T | n_trials | n_samples | **p25 (主)** | **conditional median (主)** | **censoring 率 (主)** | median (補助) | p90 (補助) | median>T/2 (補助) |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for _, r in lifetime_df.iterrows():
-        lines.append(f"| {r['cond']} | {int(r['T'])} | {int(r['n_trials'])} | "
-                     f"{r['lifetime_median_mean']:.1f} | "
-                     f"{int(r['n_above_T_half'])}/{int(r['n_trials'])} | "
-                     f"{r['conditional_median']:.1f} | {r['p25_alllifetime']:.1f} |")
+        lines.append(
+            f"| {r['cond']} | {int(r['T'])} | {int(r['n_trials'])} | {int(r['n_total_samples'])} | "
+            f"**{r['p25_pooled']:.1f}** | "
+            f"**{r['conditional_median']:.1f}** | "
+            f"**{r['censoring_rate']:.1%}** | "
+            f"{r['lifetime_median_mean']:.1f} | {r['lifetime_p90_mean']:.1f} | "
+            f"{int(r['n_above_T_half'])}/{int(r['n_trials'])} |"
+        )
     lines.append("")
     lines.append(f"**仮説 A 判定**: {hyp_a_evidence[1]}")
+    lines.append("")
+    lines.append("**Mac stage finding (継承)**: C2 (LOB uniform) は全 agent が roughly 同 pace で "
+                 "生存 (p25 も T 近く)、C3 (LOB pareto) は下位 25% が早期退場 (Pareto tail で "
+                 "wealth 失敗) — wealth-tail composition の persist が visualized。aggregate "
+                 "(T=50000) の censoring_rate ≪ 1 との対比で、LOB friction が agent identity の "
+                 "流動を実際に止めている定量証拠 (S1-secondary plan で Fig.4 / Fig.5 として申し送り予定)。")
     lines.append("")
     lines.append("**survival analysis (Kaplan-Meier 等) は引き続き Phase 2 scope 外** "
                  "(S2 plan v2 §0.7、S3 plan v2 修正 2 確定済)。")

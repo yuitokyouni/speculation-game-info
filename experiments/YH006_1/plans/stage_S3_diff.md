@@ -7,7 +7,7 @@ S3 plan v2 に基づく実装・実行ログ。3 段階 (Mac sim → 転送 → 
 | **0. plan v2 + 実装準備** | 2026-04-29 | **完了** | plan v2 反映、Mac/Windows 両側コード prep 済 (詳細下) |
 | **1. Mac LOB 100 trial × 2 条件** | 2026-04-30 | **完了** | smoke PASS / determinism guard PASS / C2 100 + C3 100 完走、§3.8 censoring 100/100 件 = 仮説 A chain link の primary evidence (Yuito 判断: continue 確定、3 指標切替で Windows aggregation へ申し送り) |
 | 2. Mac → Windows 転送 | 2026-04-30 | **完了 (git 経由)** | tar.gz は省略、parquet を直接 commit + push (S2 と同パターン、データ ~15MB と軽量のため) |
-| 3. Windows aggregation | — | 未着手 | combine + aggregate_full_summary 実行 (Windows 側 git pull 後) |
+| **3. Windows aggregation** | 2026-05-01 | **完了** | combine (200→400 行) + aggregate_full_summary 実行、6 出力 + README 追記、§3.7 pattern δ (判定保留)、§3.8 仮説 A primary evidence 確定、Mac mandate の 3 主指標切替反映済 |
 
 ---
 
@@ -194,6 +194,86 @@ tar.gz バンドルは Stage 1 §「データサイズ」のとおり省略、`d
 
 ---
 
-## Stage 3: Windows aggregation (未着手)
+## Stage 3: Windows aggregation (2026-05-01 完了)
 
-(Yuito 判断 [(a) (b) (c)] 後、Windows 側で `combine_ensemble_summaries` + `aggregate_full_summary` 実行 → 本セクション追記)
+### 実行
+1. **Mac mandate 反映** (Yuito 2026-04-30 の 3 主指標切替): `code/aggregate_full_summary.py` の lifetime 部を更新
+   - `lifetime_evidence_table`: 主指標 = p25 / conditional median / **sample-level censoring 率** (新規、`lifetimes_*.parquet` の `censored` 列から計算)、補助 = median / p90 / median>T/2 件数
+   - `hypothesis_A_evidence`: 判定軸を「LOB sample-level censoring vs aggregate のギャップ」+「median>T/2 件数」+「C2/C3 p25 対比」に再構成
+   - `append_readme`: lifetime テーブルを 主指標太字 + 補助併記 のフォーマットに変更、Mac stage finding (C2 p25=1500 vs C3 p25=212 の対比解釈) を継承
+2. `python -m code.combine_ensemble_summaries` 実行 (~32 秒): 整合性チェック PASS、`data/ensemble_summary.parquet` を 200 → 400 行に拡張
+3. `python -m code.aggregate_full_summary` 実行 (~47 秒): 4 条件 full summary + interaction + lifetime + 3 figures + README 追記 + JSON dump
+
+### §3.7 Pooled bin_var_slope 4 条件 + Pattern 判定
+
+| | wealth=uniform | wealth=pareto | wealth diff |
+|---|---:|---:|---:|
+| world=agg | C0u: **−0.4036** | C0p: **−0.2879** | **+0.1157** (S2 確定) |
+| world=lob | C2: **−0.0330** | C3: **−0.1748** | **−0.1418** |
+
+- **Pooled interaction value** = LOB diff − aggregate diff = **−0.2575** (符号反転、桁同等)
+- **Trial-level bootstrap** (100 trial pair、§3.7 v2 mandate の primary metric):
+  - LOB diff mean = **−0.0054**, CI = [**−0.0524, +0.0415**]
+  - aggregate diff = +0.1157
+  - LOB diff CI が **0 を跨ぐ** → **Pattern δ (判定保留)**
+
+→ pooled (n_rt が C2=427k / C3=478k で aggregate より遥かに少ない) では symmetric な符号反転が見えるが、trial-level CI では 0 を跨いでしまうため、§3.7 v2 mandate の primary metric (trial-level) では確定不能。**S1-secondary plan の bootstrap CI で再判定** (Yuito 確定済方針)。
+
+### §3.9 4 条件 Interaction (S1 単 trial 値からの大変化)
+
+| metric | S1 単 | S3 100 trial mean ± 95% CI | KPI L1 |
+|---|---:|---:|---|
+| rho_pearson | −0.27 | **−0.020** [−0.042, +0.002] | 弱負、CI ほぼ 0 跨ぎ |
+| rho_spearman | −0.14 | **−0.009** [−0.022, +0.004] | CI 0 跨ぎ |
+| tau_kendall | −0.12 | **−0.007** [−0.018, +0.003] | CI 0 跨ぎ |
+| bin_var_slope | +0.03 | **+0.005** [−0.054, +0.064] | CI 大幅 0 跨ぎ |
+| q90_q10_slope_diff | −0.89 | **+0.006** [−0.009, +0.021] | 符号反転 + CI 0 跨ぎ |
+
+→ 100 trial で **interaction が ほぼ ゼロに収束**、S1 単 trial の sign は trial-by-trial noise だった可能性が高い。S1 plan v2 の警告 (「plan A/B 分岐判定は S1 単 trial では出さない、S2/S3 で確定」) が的中した形。**KPI L1 (3 中 2 で同符号 + 桁一致) は判定保留、S1-secondary plan の bootstrap CI で確定**。
+
+### §3.8 Lifetime: 仮説 A 中間予測 primary evidence (Mac mandate 主指標切替後)
+
+| cond | T | n_samples | **p25 (主)** | **conditional median (主)** | **censoring 率 (主)** | median (補助) | p90 (補助) | median>T/2 件 (補助) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| C0u | 50000 | 1,071,577 | 227.0 | 391.0 | **0.9%** | 389.6 | 907.4 | 0/100 |
+| C0p | 50000 | 1,076,362 | 224.0 | 389.0 | **0.9%** | 387.8 | 905.0 | 0/100 |
+| C2 | 1500 | 11,093 | **1500.0** | 119.0 | **90.1%** | 1500.0 | 1500.0 | 100/100 |
+| C3 | 1500 | 13,891 | **212.0** | 40.0 | **72.0%** | 1485.5 | 1500.0 | 100/100 |
+
+**仮説 A 判定** (`hypothesis_A_primary_evidence: true`):
+
+> LOB censoring_rate=**81.1%** vs agg **0.9%** (gap = **+80.1%**)、median>T/2 trial 件数 = **200/200**、C2 p25=1500 vs C3 p25=212 → **仮説 A 中間予測の primary evidence 確定** (LOB friction が agent turnover を抑制、tail composition persist)。
+
+Mac stage の解釈そのまま継承:
+- **C2 (LOB uniform)**: 全 agent が roughly 同 pace で生存 (p25 も T 近く 1500)、wealth variance が縮小、初期 uniform 分布が dynamics で増幅されない
+- **C3 (LOB pareto)**: 下位 25% (p25 ≈ 212) は早期退場、上位は確実残存、**tail composition (Pareto 性) が persist**、初期 Pareto 分布が dynamics で潰れない
+- → **SG の dynamic-wealth turnover が LOB で阻害されることの直接 signature**。aggregate (T=50000、censoring 0.9%、median 388-389) との対比で、LOB friction が agent identity の流動を実際に止めている **定量証拠**。
+
+`fig_S3_lifetime_distributions.png` で 4 条件 histogram visual 化 (T 張り付き + p25 対比が見える)。
+
+### 出力ファイル一覧
+
+| パス | 内容 |
+|---|---|
+| `data/ensemble_summary.parquet` | 400 行 (C0u/C0p/C2/C3 各 100、S2 版上書き) |
+| `outputs/tables/tab_S3_full_summary.csv` (5.3 KB) | 4 条件 × 全指標 (16 + bin_var_pooled) mean ± 95% CI |
+| `outputs/tables/tab_S3_interaction.csv` (0.4 KB) | 5 主指標 interaction + bootstrap CI |
+| `outputs/tables/tab_S3_lifetime.csv` (0.4 KB) | 4 条件 lifetime 主指標 3 + 補助 3 |
+| `outputs/figures/fig_S3_pooled_bin_var_2x2.png` (34 KB) | 世界軸 × wealth 軸 2×2 heatmap + Pattern δ ラベル |
+| `outputs/figures/fig_S3_interaction_violin.png` (90 KB) | 5 metrics の interaction trial 間分布 violin |
+| `outputs/figures/fig_S3_lifetime_distributions.png` (75 KB) | 4 条件 lifetime histogram + T/2 / T 縦線 |
+| `logs/S3_summary_for_diff.json` | 全 key 数値 (pooled, interaction, lifetime, hyp_A) JSON dump |
+| `README.md` | "Stage S3" セクション追記 (4 条件主指標表 + interaction + lifetime + Pattern + Layer 2 再掲) |
+
+### Yuito レビュー待ち事項 (S3 plan v2 §5)
+
+1. **§3.7 Pattern δ (判定保留) の解釈**: pooled では symmetric 符号反転 (interaction = −0.258、有意な信号) なのに trial-level CI では 0 跨ぎ。pooled と trial-level の estimator 差を S1-secondary でどう扱うか
+2. **§3.8 仮説 A primary evidence 確定** の Phase 2 最終 README + proposal Discussion 強化方針
+3. **§3.9 interaction が S1 単 trial の値から 100 trial で ≈ 0 に収束** の解釈 (sample size 効果? S1 noise?)
+4. **KPI L1 暫定確認 — CI 0 跨ぎが多い**: S1-secondary で確定 / 別 KPI 採用検討
+5. S1-secondary plan 着手の go/no-go (本 S3 完了で着手可、Yuito 承認後)
+
+### S1-secondary plan への申し送り
+- 4 条件 100 trial bootstrap CI で plan A/B 分岐判定確定 (本来 scope)
+- 仮説 A primary evidence (§3.8 finding) を Fig.4 (lifetime + p25/cond_median/censoring) + Fig.5 (timescale + persistence) として最終 README に組み込む方針 (Yuito mandate 継承)
+- Pattern δ 保留中、pooled vs trial-level の estimator 差をどう reconcile するか議論
