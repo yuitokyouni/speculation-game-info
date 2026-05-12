@@ -160,7 +160,7 @@
 - **N=1000 旧 C0 vs N=100 C2/C3 の混成比較**: pre-2×2 では α_hill −0.56 と読んでいたが、N effect (1000→100 で +1.37) が confound。N=100 同士で −1.93 = 真値の 3.4x 過小評価。
 - **lob_mtm の発散**: PAMS cash + asset×price が ±数千ドルにぶれる SG sizing artifact (q=⌊w/B⌋ が cost basis を LOB 単位で負にする)。`sg_wealth` (cognitive) と分離して追跡する 2-account 設計で internal logic は維持。
 
-**次フェーズ (YH007 / Phase 2) で検証したい仮説 / 引き継ぎ事項** (memo.txt 由来):
+**次フェーズ (YH006_1 / Phase 2) で検証したい仮説 / 引き継ぎ事項** (memo.txt 由来; bootstrap CI / ensemble は YH006_1 で実施済):
 - **bootstrap CI / 100 trial ensemble**: α_hill (n_tail=10 で誤差 ~α/√n ≈ 1.2) と corr(\|ΔG\|, h) の方向性を統計的に確定。現状 1 trial の点推定。
 - **LIMIT_ORDER open 拡張**: zero-fill open 率 ≈ 30% (流動性不足) → SG 信号の 3 割が LOB で消失。論文1 Fig 11/12/13 (asymmetry / leverage / gain-loss) の再現には致命的。MARKET-only から LIMIT mid±n% / ttl=k への拡張で改善見込み。
 - **iterative C_ticks calibration**: 現状 C1 で median|Δmid|×3 較正 → C2/C3 で再使用 (1 次近似)。SG 投入で Δmid 分布が変わるので self-consistency が崩れる。SG 投入後の price から再較正する iteration が必要。
@@ -173,3 +173,38 @@
 - **aggregate_sim parity 契約**: uniform mode × 4 seeds (1, 42, 777, 12345) で YH005 simulate と bit-parity、Pareto mode × 2 seeds で determinism、uniform vs Pareto × 3 seeds で divergence の計 9 ケース は絶対に壊さない (YH007 で aggregate_sim を継承する場合)。
 - **MMFCNAgent / SpeculationAgent / history_broadcast の設計判断**: LOB 路線を続けるなら同じ structural choices を踏襲 (両側 MARKET 不約定問題、liquidity guard、2-account wealth)。
 - **pams 0.2.2 を patch しない**: subclass + config のみ。order_volume hardcode 等は subclass で吸収。
+
+---
+
+## YH006_1 — Phase 2: F1 interaction 機構解明 (S1/S2/S3 完了, 2026-05)
+
+**研究設計**: YH006 Phase 1 の 1-trial 点推定を 100-trial ensemble に拡張し、`corr(|ΔG|, h)` の wealth × world interaction の統計的確定を目指す。ablation (causal 特定) は保留 → YH006_2 以降。
+
+**使用 parameter**: YH006 と同一 (N=100, M=5, S=2, B=9, C=3.0, LOB: 30 MMFCN + 100 SG, warmup=200/main=1500, tickSize=1e-5)。seed = 1000+i, i ∈ [0, 100)。4 条件 × 100 trial。
+
+**確認済み (4 条件 ensemble mean ± 95% CI)**:
+
+| metric | C0u | C0p | C2 | C3 |
+|---|---|---|---|---|
+| rho_pearson | +0.347 [+0.346, +0.349] | +0.347 [+0.346, +0.348] | +0.278 [+0.261, +0.295] | +0.257 [+0.243, +0.272] |
+| rho_spearman | +0.194 [+0.193, +0.195] | +0.194 [+0.193, +0.195] | +0.142 [+0.132, +0.153] | +0.133 [+0.125, +0.142] |
+| bin_var_slope | -0.314 [-0.339, -0.288] | -0.324 [-0.348, -0.300] | -0.036 [-0.067, -0.004] | -0.041 [-0.074, -0.007] |
+| q90_q10_slope_diff | +0.593 [+0.591, +0.596] | +0.591 [+0.589, +0.594] | +0.213 [+0.200, +0.226] | +0.217 [+0.206, +0.229] |
+| lifetime censoring 率 | 0.9% | 0.9% | 90.1% | 72.0% |
+| lifetime p25 | 227.0 | 224.0 | 1500.0 | 212.0 |
+
+**主 finding**:
+- **仮説 A primary evidence 確定**: LOB censoring_rate = 81.1% vs aggregate 0.9% (gap +80.1%)、median>T/2 trial 200/200。LOB friction が agent turnover を実際に抑制し、tail composition が persist する定量証拠。
+- **C2 (LOB uniform)**: 全 agent が roughly 同 pace で生存 (p25=T、censoring 90%)。C3 (LOB pareto): 下位 25% が早期退場 (p25=212)。初期 wealth heterogeneity が LOB 環境では dynamics に残存。
+- **Interaction (C3−C2)−(C0p−C0u)**: rho_pearson = −0.020 [−0.042, +0.002]、CI が 0 を跨ぐ → plan A/B 分岐判定保留。S1-secondary (bootstrap 確定) 待ち。
+- **wealth_persistence_rho**: C2 = +0.237 [+0.216, +0.257] で有意、C3 ≈ 0 → LOB + uniform では初期 wealth rank が持続するが pareto 投入で壊れる非対称性を確認。
+
+**保留事項**:
+- **S1-secondary (plan A/B 分岐確定)**: 100-trial bootstrap CI の最終確認。Yuito 承認後に plan A ablation (C2_A1, C3_A1, q 固定) / plan B 分岐。
+- **Ablation 実験 (C2_A1, C3_A1, C3_A3)**: 因果経路 (`q = ⌊w/B⌋` vs strategy selection) の特定。YH006_1 SPEC v2.0 §3 参照。
+- **Layer 2 timescale**: LOB T=1500 は Katahira 標準 T=50000 の 1/33。本 sim 長を超える長期での F1 持続性は未検証。proposal Limitations 節に明記予定。
+
+**YH006_2 着手時の注意点**:
+- **S1-secondary を先に完了させる**: plan A/B 判定が確定しないと YH006_2 の scope が固まらない。
+- **Interaction CI の解釈**: 現状 5 指標中 CI が 0 を跨ぐものが多い。YH006_2 の hypothesis framing はこの結果を踏まえた上で確定する。
+- **コード引き継ぎ**: `YH006_1/code/adapter.py` (Phase 1 → Phase 2 schema)、`lob_ensemble.py`、`aggregate_ensemble.py` はそのまま流用可能。ensemble infrastructure は確立済み。
