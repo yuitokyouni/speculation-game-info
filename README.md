@@ -18,7 +18,8 @@
 | YH005_1 | SG Phase 1: 3 層機構の数値実証 (論文2 Fig. 2/4/7/8/10 再現) | Katahira & Chen (2019) | Done (findings 記載済) |
 | YH005_2 | 論文1 Fig 11/12/13 (asymmetry / leverage / gain-loss) — aggregate post-processing | Katahira et al. (2019) Physica A 524 (論文1) | Planned (5-6 月着手目安) |
 | YH006 | SG を PAMS-LOB に移植 (2×2 world × wealth, N=100) | Katahira & Chen (2019) + Hirano-Izumi 2023 PAMS | Phase 1 完了 (findings 記載済) |
-| YH006_1 | YH006 Phase 2: F1 interaction の機構解明 (wealth 階級別 funnel) | — | Planned |
+| YH006_1 | YH006 Phase 2: F1 interaction の機構解明 (wealth 階級別 funnel) | — | S1/S2/S3 完了 (仮説A primary evidence 確定; ablation 保留) |
+| YH006_2 | SG on LOB: 論文1+2 完全再現 (LIMIT_ORDER 拡張 + Fig.11/12/13) | Katahira et al. (2019) Physica A 524 | Planned (スコープ検討中) |
 | YH007 | Self-organized SG on LOB | Katahira & Chen (Physica A 2021) | Open (詳細記述 別途) |
 
 **経緯メモ (transparency)**: 旧版表で `YH006 = Speculation Game Full (論文1+2 完全再現)` だった entry を 2026-04 に **`YH006 = LOB 移植` に意味変更**。実装は YH005_1 の 5 figure を PAMS-LOB 上で再現し 2×2 (world × wealth) 比較に拡張する方向 (`experiments/YH006/SPEC.md` §0)。これに伴い、旧 YH006 で予定していた**論文1 Fig 11/12/13 (aggregate post-processing)** は新設 `YH005_2` に retire。
@@ -35,7 +36,8 @@ experiments/
 ├── YH005_1/        SG Phase 1: 3 層機構の数値実証 — 完了 (論文2 Fig. 2/4/7/8/10)
 ├── YH005_2/        論文1 Fig 11/12/13 (asymmetry / leverage / gain-loss) — 未着手
 ├── YH006/          SG on PAMS-LOB (2×2 world × wealth) — Phase 1 完了
-├── YH006_1/        YH006 Phase 2: F1 interaction 機構解明 — 未着手
+├── YH006_1/        YH006 Phase 2: F1 interaction 機構解明 — S1/S2/S3 完了 (ablation 保留)
+├── YH006_2/        SG on LOB 論文1+2 完全再現 — 未着手
 └── YH007/          Self-organized SG on LOB — 詳細記述 別途
 
 docs/
