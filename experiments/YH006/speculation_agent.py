@@ -213,6 +213,27 @@ class SpeculationAgent(Agent):
         mu_t = hist.mu
         P_now = hist.P
 
+        # Stale-fill recovery: pending=None で asset_volumes != 0 = SG が把握しない
+        # 過去 MARKET_ORDER の遅延約定が残っている。次の reconcile で「新 open の
+        # actual_vol」と誤読されると entry_quantity が累積 (倍化) するので、ここで
+        # flatten MARKET_ORDER を送って position=0 に戻し、本 step は他の SG 行動を
+        # スキップする。Phase 2 S4 で発覚 (warmup→main 境界 + bankruptcy substitute
+        # 後 re-init 境界で 1.6-1.9% RT が q=2x で記録されていた)。
+        if self.pending_intent is None and self.position == 0:
+            stale_vol = int(self.asset_volumes.get(market_id, 0))
+            if stale_vol != 0:
+                flat_order = Order(
+                    agent_id=self.agent_id,
+                    market_id=market_id,
+                    is_buy=(stale_vol < 0),
+                    kind=MARKET_ORDER,
+                    volume=abs(stale_vol),
+                )
+                orders.append(flat_order)
+                self._outstanding.setdefault(market_id, []).append(flat_order)
+                self._record_action(t, "stale_flatten")
+                return orders
+
         self._reconcile(market_id, P_now)
 
         rec = int(self.strategies[self.active_idx, mu_t])
