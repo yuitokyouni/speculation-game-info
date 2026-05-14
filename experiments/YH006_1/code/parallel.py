@@ -24,18 +24,18 @@ def default_n_workers() -> int:
     return min(cpu, 8)
 
 
-def _worker_run_trial(args: Tuple[str, int, str]) -> Tuple[str, int, float, int, int, Optional[str]]:
+def _worker_run_trial(args: Tuple[str, int, str, Optional[int]]) -> Tuple[str, int, float, int, int, Optional[str]]:
     """Worker 関数 — 1 trial 実行 + parquet 出力 + 結果サマリ返り。
 
-    args: (cond_name, seed, out_dir_str)
+    args: (cond_name, seed, out_dir_str, q_const_or_None)
     return: (cond, seed, runtime_sec, n_rt, n_sub, error_str_or_None)
     """
-    cond, seed, out_str = args
+    cond, seed, out_str, q_const = args
     try:
         # Workerプロセス内 import (top-level import は heavy & forks 不要)
         from run_experiment import run_one_trial
         out_dir = Path(out_str)
-        result = run_one_trial(cond, seed, out_dir=out_dir, is_lob_smoke=False)
+        result = run_one_trial(cond, seed, out_dir=out_dir, is_lob_smoke=False, q_const=q_const)
         return (cond, seed, result.runtime_sec, result.n_round_trips,
                 result.n_substitutions, None)
     except Exception as e:
@@ -49,8 +49,12 @@ def run_parallel_trials(
     out_dir: Path,
     n_workers: Optional[int] = None,
     logger: Optional[logging.Logger] = None,
+    q_const: Optional[int] = None,
 ) -> List[Tuple[int, float, int, int, Optional[str]]]:
-    """seeds × cond を並列実行、(seed, runtime, n_rt, n_sub, err) のリストを返す。"""
+    """seeds × cond を並列実行、(seed, runtime, n_rt, n_sub, err) のリストを返す。
+
+    S4-S5 (A1 ablation): q_const を渡すと QConstSpeculationAgent 経路へ。
+    """
     if n_workers is None:
         n_workers = default_n_workers()
     if logger is None:
@@ -59,7 +63,7 @@ def run_parallel_trials(
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    args = [(cond, seed, str(out_dir)) for seed in seeds]
+    args = [(cond, seed, str(out_dir), q_const) for seed in seeds]
     logger.info(
         f"[parallel] cond={cond} n_seeds={len(seeds)} n_workers={n_workers} out={out_dir}"
     )

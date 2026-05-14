@@ -185,9 +185,13 @@ def run_lob_trial_smoke(
     num_sg: int = 100,
     max_normal_orders: int = 500,
     c_ticks: float = 28.0,
+    q_const: Optional[int] = None,
 ) -> SimResult:
     """LOB smoke (S2 plan v2 §3.5 / 修正 4): WInitLoggingSpeculationAgent の
     wiring 動作確認用。短縮 sim 長で agent parquet に w_init non-NaN を assertion。
+
+    S4-S5 (ablation A1): `q_const` を非 None で渡すと QConstSpeculationAgent に切替、
+    cond の `q_rule == "const"` 必須。S6 (A3) は別 subclass で同 pattern。
 
     本関数は PAMS が import 可能な環境でのみ動く (Mac / pams 入り Linux)。
     Windows env では ImportError、smoke は skip して diff.md で記録する。
@@ -202,6 +206,12 @@ def run_lob_trial_smoke(
 
     cond = CONDITIONS[cond_name]
     assert cond.world == "lob", f"{cond_name} is not LOB"
+    is_ablation_a1 = (cond.q_rule == "const")
+    if is_ablation_a1 and q_const is None:
+        raise ValueError(
+            f"cond={cond_name} has q_rule='const' but q_const arg not provided. "
+            f"S4 較正値を渡してください。"
+        )
 
     # Phase 1 configs を流用、ただし SG agent class を WInitLogging 版に差し替える
     if cond.wealth_mode == "uniform":
@@ -219,17 +229,23 @@ def run_lob_trial_smoke(
             max_normal_orders=max_normal_orders,
         )
     cfg["FCNAgents"]["numAgents"] = num_fcn
-    cfg["SGAgents"]["class"] = "WInitLoggingSpeculationAgent"  # ← S2 で本機能差し替え
+    # S2: w_init logging subclass。S4-S5: A1 ablation で QConst subclass へ差替。
+    if is_ablation_a1:
+        cfg["SGAgents"]["class"] = "QConstSpeculationAgent"
+        cfg["SGAgents"]["qConst"] = int(q_const)
+    else:
+        cfg["SGAgents"]["class"] = "WInitLoggingSpeculationAgent"
 
     from custom_saver import OrderTrackingSaver  # type: ignore
     from mm_fcn_agent import MMFCNAgent  # type: ignore
-    from sg_agent import WInitLoggingSpeculationAgent  # YH006_1 内 subclass
+    from sg_agent import WInitLoggingSpeculationAgent, QConstSpeculationAgent  # YH006_1 内 subclass
 
     saver = OrderTrackingSaver()
     runner = SequentialRunner(
         settings=cfg, prng=_stdlib_random.Random(seed), logger=saver,
     )
     runner.class_register(WInitLoggingSpeculationAgent)
+    runner.class_register(QConstSpeculationAgent)
     runner.class_register(MMFCNAgent)
 
     t0 = time.perf_counter()
@@ -305,17 +321,21 @@ def run_lob_trial_smoke(
 # LOB full-length runner (S3 plan v2 §3.2、Mac でのみ実行可、PAMS 必要)
 # ---------------------------------------------------------------------------
 
-def run_lob_trial(cond_name: str, seed: int) -> SimResult:
+def run_lob_trial(cond_name: str, seed: int, q_const: Optional[int] = None) -> SimResult:
     """LOB full-length 1 trial (warmup=200, main=1500、Phase 1 default 設定)。
 
-    `run_lob_trial_smoke` を `LOB_PARAMS` で driven。wealth_ts は終了時 1 snapshot
-    のみ取る (smoke と同じ実装)。corr_winit_wt_T1..T10 は同じ値 (= corr(w_init,
-    w_final)) に degenerate するが、aggregate との比較は trial-level で十分機能する
-    (S2 plan §3.2 の検討事項参照)。複数 snapshot 取得は将来 stage で必要なら custom
-    Saver で実装、本 S3 では scope 外。
+    `run_lob_trial_smoke` を `LOB_PARAMS` で driven。S4-S5 で `q_const` を渡すと A1
+    ablation 経路 (QConstSpeculationAgent 切替) が有効。wealth_ts は終了時 1 snapshot
+    のみ取る (smoke と同じ実装)。
     """
-    from config import LOB_PARAMS  # noqa: E402
+    from config import LOB_PARAMS, CONDITIONS as _CONDS  # noqa: E402
     p = LOB_PARAMS
+    cond = _CONDS[cond_name]
+    if cond.q_rule == "const" and q_const is None:
+        raise ValueError(
+            f"cond={cond_name} requires q_const (q_rule='const'). "
+            f"S4 較正値を呼び出し側 (ablation_ensemble.py) で指定する。"
+        )
     return run_lob_trial_smoke(
         cond_name, seed,
         warmup_steps=p["warmup_steps"],
@@ -324,6 +344,7 @@ def run_lob_trial(cond_name: str, seed: int) -> SimResult:
         num_sg=p["N_sg"],
         max_normal_orders=p["max_normal_orders"],
         c_ticks=p["c_ticks"],
+        q_const=q_const,
     )
 
 
@@ -333,16 +354,16 @@ def run_lob_trial(cond_name: str, seed: int) -> SimResult:
 
 def run_one_trial(
     cond_name: str, seed: int, out_dir: Optional[Path] = None,
-    is_lob_smoke: bool = False,
+    is_lob_smoke: bool = False, q_const: Optional[int] = None,
 ) -> SimResult:
     cond = CONDITIONS[cond_name]
     if cond.world == "agg":
         result = run_aggregate_trial(cond_name, seed)
     elif cond.world == "lob":
         if is_lob_smoke:
-            result = run_lob_trial_smoke(cond_name, seed)
+            result = run_lob_trial_smoke(cond_name, seed, q_const=q_const)
         else:
-            result = run_lob_trial(cond_name, seed)
+            result = run_lob_trial(cond_name, seed, q_const=q_const)
     else:
         raise ValueError(f"unknown world: {cond.world}")
 

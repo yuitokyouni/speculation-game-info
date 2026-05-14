@@ -166,6 +166,16 @@ class SpeculationAgent(Agent):
         # LOB 執行の cost basis は PAMS 側で追跡され、SG ロジックには干渉しない。
 
     # ------------------------------------------------------------------
+    # Phase 2 ablation hook: open round-trip の q を返す.
+    #
+    # Default = `max(1, sg_wealth // B)` (= Phase 1 既存挙動と bit-一致)。
+    # Phase 2 A1 ablation で subclass が override して `q_const` を返す。
+    # Phase 2 全体ルール: 「Phase 1 への後方互換拡張は許容、動作変更は禁止」(S2 plan §0.4)。
+    # ------------------------------------------------------------------
+    def _compute_open_quantity(self) -> int:
+        return max(1, int(self.sg_wealth // self.B))
+
+    # ------------------------------------------------------------------
     # main decision: called by runner once per step (if sampled)
     # ------------------------------------------------------------------
     def submit_orders(self, markets: List[Market]) -> List[Union[Order, Cancel]]:
@@ -215,7 +225,7 @@ class SpeculationAgent(Agent):
                 self.num_liquidity_skips += 1
                 self._record_action(t, "idle")
             else:
-                q = max(1, int(self.sg_wealth // self.B))
+                q = self._compute_open_quantity()
                 self.pending_intent = "open"
                 self.pending_action = rec
                 self.pending_quantity_sent = q
