@@ -23,7 +23,10 @@
       "PowerShell(Get-CimInstance *)",
       "PowerShell($p = Get-Process -Id 8720 -ErrorAction SilentlyContinue; if \\($p\\) { \"PID 8720: CPU=$\\([math]::Round\\($p.CPU,1\\)\\)s WS=$\\([math]::Round\\($p.WorkingSet64/1MB,0\\)\\)MB Started=$\\($p.StartTime\\) Elapsed=$\\([math]::Round\\(\\(\\(Get-Date\\) - $p.StartTime\\).TotalMinutes,1\\)\\)min\" } else { \"PID 8720 not running\" })",
       "Bash(git mv *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(cp experiments/YH006_1/plans/stage_S5.9_plan.md /tmp/stage_S5.9_plan.local-draft.md)",
+      "Bash(rm experiments/YH006_1/plans/stage_S5.9_plan.md)"
     ]
   }
 }
