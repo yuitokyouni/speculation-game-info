@@ -1,0 +1,40 @@
+2026-06-10 22:43:18,736 [INFO] ======================================================================
+2026-06-10 22:43:18,736 [INFO] S5.9 c_ticks self-consistency — conds=['C2', 'C3'], seeds=[1000, 1001, 1002, 1003, 1004, 1005], main_steps=1500, baseline c_ticks=28.0
+2026-06-10 22:43:18,736 [INFO] ======================================================================
+2026-06-10 22:43:18,736 [INFO] [PhaseA] 12 run, n_workers=8, c_ticks={'C2': 28.0, 'C3': 28.0}
+2026-06-10 22:46:06,445 [INFO] [PhaseA] C2 seed=1000 c_ticks_in=28.000 recal=55.244 n_rt=4276 no_trade=0.00
+2026-06-10 22:46:42,954 [INFO] [PhaseA] C2 seed=1004 c_ticks_in=28.000 recal=66.057 n_rt=4236 no_trade=0.00
+2026-06-10 22:47:04,556 [INFO] [PhaseA] C3 seed=1000 c_ticks_in=28.000 recal=52.228 n_rt=3876 no_trade=0.00
+2026-06-10 22:47:37,786 [INFO] [PhaseA] C2 seed=1003 c_ticks_in=28.000 recal=42.637 n_rt=4353 no_trade=0.00
+2026-06-10 22:47:44,789 [INFO] [PhaseA] C3 seed=1001 c_ticks_in=28.000 recal=39.936 n_rt=4920 no_trade=0.00
+2026-06-10 22:48:05,889 [INFO] [PhaseA] C2 seed=1002 c_ticks_in=28.000 recal=43.952 n_rt=4497 no_trade=0.00
+2026-06-10 22:49:19,262 [INFO] [PhaseA] C3 seed=1002 c_ticks_in=28.000 recal=48.919 n_rt=3833 no_trade=0.00
+2026-06-10 22:50:02,595 [INFO] [PhaseA] C2 seed=1001 c_ticks_in=28.000 recal=35.658 n_rt=4356 no_trade=0.00
+2026-06-10 22:50:35,661 [INFO] [PhaseA] C3 seed=1004 c_ticks_in=28.000 recal=58.633 n_rt=4076 no_trade=0.00
+2026-06-10 22:51:02,697 [INFO] [PhaseA] C2 seed=1005 c_ticks_in=28.000 recal=34.297 n_rt=3395 no_trade=0.00
+2026-06-10 22:51:07,427 [INFO] [PhaseA] C3 seed=1005 c_ticks_in=28.000 recal=35.569 n_rt=4734 no_trade=0.00
+2026-06-10 22:51:31,240 [INFO] [PhaseA] C3 seed=1003 c_ticks_in=28.000 recal=44.730 n_rt=3832 no_trade=0.00
+2026-06-10 22:51:33,146 [INFO] [PhaseA] SG fill_rate (vol, pooled median)={'C2': 0.7523300733076723, 'C3': 0.7091729409766427}
+2026-06-10 22:51:33,146 [INFO] [PhaseA] pooled c_ticks_recal={'C2': 43.29489000000004, 'C3': 46.824389999999966} (drift vs 28: {'C2': 1.5462460714285728, 'C3': 1.6722996428571417}) n_rt_base={'C2': 4314.5, 'C3': 3976.0}
+2026-06-10 22:51:33,146 [INFO] [PhaseA] endpoints={'C2': {'pooled_bin_var_slope': -0.0934065934065934, 'censored_frac': 0.9118541033434651, 'n_rt_total': 25113}, 'C3': {'pooled_bin_var_slope': -0.3230769230769231, 'censored_frac': 0.7211538461538461, 'n_rt_total': 25271}}
+2026-06-10 22:51:33,146 [INFO] [PhaseB] 12 run, n_workers=8, c_ticks={'C2': 43.29489000000004, 'C3': 46.824389999999966}
+2026-06-10 22:56:51,393 [INFO] [PhaseB] C2 seed=1000 c_ticks_in=43.295 recal=43.255 n_rt=4591 no_trade=0.00
+2026-06-10 22:58:08,226 [INFO] [PhaseB] C2 seed=1003 c_ticks_in=43.295 recal=42.456 n_rt=4582 no_trade=0.00
+2026-06-10 22:59:40,859 [INFO] [PhaseB] C3 seed=1000 c_ticks_in=46.824 recal=40.788 n_rt=4217 no_trade=0.00
+2026-06-10 23:00:19,150 [INFO] [PhaseB] C2 seed=1004 c_ticks_in=43.295 recal=51.982 n_rt=3909 no_trade=0.00
+2026-06-10 23:00:34,360 [INFO] [PhaseB] C3 seed=1001 c_ticks_in=46.824 recal=34.190 n_rt=4841 no_trade=0.00
+2026-06-10 23:01:35,032 [INFO] [PhaseB] C3 seed=1002 c_ticks_in=46.824 recal=46.059 n_rt=3743 no_trade=0.00
+2026-06-10 23:01:50,622 [INFO] [PhaseB] C2 seed=1001 c_ticks_in=43.295 recal=32.115 n_rt=4783 no_trade=0.00
+2026-06-10 23:02:05,959 [INFO] [PhaseB] C2 seed=1002 c_ticks_in=43.295 recal=46.793 n_rt=4691 no_trade=0.00
+2026-06-10 23:07:17,385 [INFO] [PhaseB] C3 seed=1004 c_ticks_in=46.824 recal=47.689 n_rt=4304 no_trade=0.00
+2026-06-10 23:07:35,138 [INFO] [PhaseB] C2 seed=1005 c_ticks_in=43.295 recal=33.491 n_rt=3556 no_trade=0.00
+2026-06-10 23:08:28,847 [INFO] [PhaseB] C3 seed=1005 c_ticks_in=46.824 recal=31.681 n_rt=4825 no_trade=0.00
+2026-06-10 23:15:49,196 [INFO] [PhaseB] C3 seed=1003 c_ticks_in=46.824 recal=37.597 n_rt=3955 no_trade=0.00
+2026-06-10 23:15:49,734 [INFO] [PhaseB] n_rt_recal={'C2': 4586.5, 'C3': 4260.5} Δn_rt={'C2': 0.06304322632981806, 'C3': 0.07155432595573441} KPI={'C2': 'H_friction', 'C3': 'H_friction'} overall=H_friction
+2026-06-10 23:15:49,831 [INFO] [PhaseB] funnel slope A→B Δ={'C2': 0.011588411588411562, 'C3': -0.045054945054945006} judgment={'C2': 'maintained', 'C3': 'maintained'} (plan §4 主判定)
+2026-06-10 23:15:49,831 [INFO] [PhaseB] survival censored_frac Δ={'C2': -0.008239645512139737, 'C3': -0.010253372220196844}
+2026-06-10 23:15:49,831 [INFO] [PhaseB] 収束診断 c_ticks''/c_ticks'={'C2': 0.9898576945223777, 'C3': 0.8370051377070805} (1 から遠いほど 1 パス再較正は非収束)
+2026-06-10 23:15:49,833 [INFO] summary written: /Users/hasegawayuito/Documents/GitHub/speculation-game-info/experiments/YH006_1/logs/S5.9_c_ticks_recal.json
+2026-06-10 23:15:49,833 [INFO] ======================================================================
+2026-06-10 23:15:49,833 [INFO] S5.9 complete. logs/S5.9_c_ticks_recal.json を確認 → diff.md
+2026-06-10 23:15:49,833 [INFO] ======================================================================

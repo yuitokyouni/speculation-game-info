@@ -1,0 +1,511 @@
+{
+  "stage": "S5.9-P2",
+  "seeds": [
+    1000,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005
+  ],
+  "main_steps": 1500,
+  "baseline_c_ticks": 28.0,
+  "phaseA": {
+    "c_ticks_recal_pooled": {
+      "C2": 43.29489000000004,
+      "C3": 46.824389999999966
+    },
+    "drift_ratio": {
+      "C2": 1.5462460714285728,
+      "C3": 1.6722996428571417
+    },
+    "n_rt_pooled": {
+      "C2": 4314.5,
+      "C3": 3976.0
+    },
+    "sg_fill_rate_vol_pooled": {
+      "C2": 0.7523300733076723,
+      "C3": 0.7091729409766427
+    },
+    "endpoints": {
+      "C2": {
+        "pooled_bin_var_slope": -0.0934065934065934,
+        "censored_frac": 0.9118541033434651,
+        "n_rt_total": 25113
+      },
+      "C3": {
+        "pooled_bin_var_slope": -0.3230769230769231,
+        "censored_frac": 0.7211538461538461,
+        "n_rt_total": 25271
+      }
+    },
+    "rows": [
+      {
+        "cond": "C2",
+        "seed": 1000,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 55.24380000000002,
+        "median_abs_dmid_nz": 18.414600000000007,
+        "n_rt": 4276,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.3194222666667,
+        "n_sg_orders": 31725,
+        "sg_submitted_vol": 765412.0,
+        "sg_filled_vol": 576404.0,
+        "sg_fill_rate_vol": 0.7530637094793392,
+        "n_sg_exec_sides": 44805
+      },
+      {
+        "cond": "C2",
+        "seed": 1004,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 66.05746500000004,
+        "median_abs_dmid_nz": 22.019155000000012,
+        "n_rt": 4236,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 301.74926056,
+        "n_sg_orders": 30910,
+        "sg_submitted_vol": 752988.0,
+        "sg_filled_vol": 573694.0,
+        "sg_fill_rate_vol": 0.7618899637178813,
+        "n_sg_exec_sides": 43949
+      },
+      {
+        "cond": "C3",
+        "seed": 1000,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 52.22777999999997,
+        "median_abs_dmid_nz": 17.40925999999999,
+        "n_rt": 3876,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 296.96211258000005,
+        "n_sg_orders": 30904,
+        "sg_submitted_vol": 665412.0,
+        "sg_filled_vol": 480176.0,
+        "sg_fill_rate_vol": 0.7216220927786093,
+        "n_sg_exec_sides": 40108
+      },
+      {
+        "cond": "C2",
+        "seed": 1003,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 42.637380000000064,
+        "median_abs_dmid_nz": 14.212460000000021,
+        "n_rt": 4353,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.29266356666665,
+        "n_sg_orders": 32117,
+        "sg_submitted_vol": 930196.0,
+        "sg_filled_vol": 670616.0,
+        "sg_fill_rate_vol": 0.7209405329629455,
+        "n_sg_exec_sides": 47645
+      },
+      {
+        "cond": "C3",
+        "seed": 1001,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 39.93598499999999,
+        "median_abs_dmid_nz": 13.311994999999996,
+        "n_rt": 4920,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 297.30239980666664,
+        "n_sg_orders": 33913,
+        "sg_submitted_vol": 1086423.0,
+        "sg_filled_vol": 712471.0,
+        "sg_fill_rate_vol": 0.6557952105211322,
+        "n_sg_exec_sides": 49429
+      },
+      {
+        "cond": "C2",
+        "seed": 1002,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 43.95240000000001,
+        "median_abs_dmid_nz": 14.650800000000004,
+        "n_rt": 4497,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.5945613466667,
+        "n_sg_orders": 33688,
+        "sg_submitted_vol": 827392.0,
+        "sg_filled_vol": 665018.0,
+        "sg_fill_rate_vol": 0.8037520304764851,
+        "n_sg_exec_sides": 50524
+      },
+      {
+        "cond": "C3",
+        "seed": 1002,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 48.91859999999997,
+        "median_abs_dmid_nz": 16.30619999999999,
+        "n_rt": 3833,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.38747235333335,
+        "n_sg_orders": 32341,
+        "sg_submitted_vol": 967553.0,
+        "sg_filled_vol": 708510.0,
+        "sg_fill_rate_vol": 0.7322699635058751,
+        "n_sg_exec_sides": 49562
+      },
+      {
+        "cond": "C2",
+        "seed": 1001,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 35.657850000000025,
+        "median_abs_dmid_nz": 11.885950000000008,
+        "n_rt": 4356,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.59945511333336,
+        "n_sg_orders": 33545,
+        "sg_submitted_vol": 875700.0,
+        "sg_filled_vol": 658173.0,
+        "sg_fill_rate_vol": 0.7515964371360054,
+        "n_sg_exec_sides": 49683
+      },
+      {
+        "cond": "C3",
+        "seed": 1004,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 58.63296000000008,
+        "median_abs_dmid_nz": 19.544320000000027,
+        "n_rt": 4076,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 304.0635054533334,
+        "n_sg_orders": 30386,
+        "sg_submitted_vol": 753257.0,
+        "sg_filled_vol": 536352.0,
+        "sg_fill_rate_vol": 0.7120438309899543,
+        "n_sg_exec_sides": 42259
+      },
+      {
+        "cond": "C2",
+        "seed": 1005,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 34.296674999999965,
+        "median_abs_dmid_nz": 11.432224999999988,
+        "n_rt": 3395,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.25536890000006,
+        "n_sg_orders": 32500,
+        "sg_submitted_vol": 1040454.0,
+        "sg_filled_vol": 731518.0,
+        "sg_fill_rate_vol": 0.7030757726915365,
+        "n_sg_exec_sides": 48630
+      },
+      {
+        "cond": "C3",
+        "seed": 1005,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 35.568539999999985,
+        "median_abs_dmid_nz": 11.856179999999995,
+        "n_rt": 4734,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.22435178,
+        "n_sg_orders": 33903,
+        "sg_submitted_vol": 1086075.0,
+        "sg_filled_vol": 767097.0,
+        "sg_fill_rate_vol": 0.7063020509633312,
+        "n_sg_exec_sides": 51831
+      },
+      {
+        "cond": "C3",
+        "seed": 1003,
+        "c_ticks_in": 28.0,
+        "c_ticks_recal": 44.73017999999996,
+        "median_abs_dmid_nz": 14.910059999999987,
+        "n_rt": 3832,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 296.43593612000006,
+        "n_sg_orders": 29123,
+        "sg_submitted_vol": 1043060.0,
+        "sg_filled_vol": 649177.0,
+        "sg_fill_rate_vol": 0.6223774279523709,
+        "n_sg_exec_sides": 42041
+      }
+    ]
+  },
+  "timestamp": "2026-06-10T22:51:33.146482",
+  "phaseB": {
+    "c_ticks_used": {
+      "C2": 43.29489000000004,
+      "C3": 46.824389999999966
+    },
+    "n_rt_pooled": {
+      "C2": 4586.5,
+      "C3": 4260.5
+    },
+    "sg_fill_rate_vol_pooled": {
+      "C2": 0.6460986022317212,
+      "C3": 0.6217891412419041
+    },
+    "delta_n_rt": {
+      "C2": 0.06304322632981806,
+      "C3": 0.07155432595573441
+    },
+    "kpi_per_cond": {
+      "C2": "H_friction",
+      "C3": "H_friction"
+    },
+    "overall": "H_friction",
+    "endpoints": {
+      "C2": {
+        "pooled_bin_var_slope": -0.08181818181818183,
+        "censored_frac": 0.9036144578313253,
+        "n_rt_total": 26112
+      },
+      "C3": {
+        "pooled_bin_var_slope": -0.3681318681318681,
+        "censored_frac": 0.7109004739336493,
+        "n_rt_total": 25885
+      }
+    },
+    "funnel_delta_slope": {
+      "C2": 0.011588411588411562,
+      "C3": -0.045054945054945006
+    },
+    "funnel_judgment_preregistered": {
+      "C2": "maintained",
+      "C3": "maintained"
+    },
+    "survival_censored_frac_delta": {
+      "C2": -0.008239645512139737,
+      "C3": -0.010253372220196844
+    },
+    "c_ticks_recal2_pooled": {
+      "C2": 42.85577999999998,
+      "C3": 39.19225500000002
+    },
+    "convergence_ratio": {
+      "C2": 0.9898576945223777,
+      "C3": 0.8370051377070805
+    },
+    "rows": [
+      {
+        "cond": "C2",
+        "seed": 1000,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 43.25508000000002,
+        "median_abs_dmid_nz": 14.418360000000007,
+        "n_rt": 4591,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 297.9835468200001,
+        "n_sg_orders": 31400,
+        "sg_submitted_vol": 721959.0,
+        "sg_filled_vol": 510407.0,
+        "sg_fill_rate_vol": 0.7069750498296995,
+        "n_sg_exec_sides": 41950
+      },
+      {
+        "cond": "C2",
+        "seed": 1003,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 42.45647999999994,
+        "median_abs_dmid_nz": 14.15215999999998,
+        "n_rt": 4582,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.20249140000004,
+        "n_sg_orders": 28090,
+        "sg_submitted_vol": 1117781.0,
+        "sg_filled_vol": 705829.0,
+        "sg_fill_rate_vol": 0.6314555355655536,
+        "n_sg_exec_sides": 43802
+      },
+      {
+        "cond": "C3",
+        "seed": 1000,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 40.787819999999954,
+        "median_abs_dmid_nz": 13.595939999999985,
+        "n_rt": 4217,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 297.7196129666667,
+        "n_sg_orders": 30369,
+        "sg_submitted_vol": 598588.0,
+        "sg_filled_vol": 426968.0,
+        "sg_fill_rate_vol": 0.7132919470487213,
+        "n_sg_exec_sides": 37741
+      },
+      {
+        "cond": "C2",
+        "seed": 1004,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 51.982065000000034,
+        "median_abs_dmid_nz": 17.32735500000001,
+        "n_rt": 3909,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.95834490000004,
+        "n_sg_orders": 28474,
+        "sg_submitted_vol": 1106065.0,
+        "sg_filled_vol": 608103.0,
+        "sg_fill_rate_vol": 0.5497895693291082,
+        "n_sg_exec_sides": 39030
+      },
+      {
+        "cond": "C3",
+        "seed": 1001,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 34.19004000000001,
+        "median_abs_dmid_nz": 11.396680000000003,
+        "n_rt": 4841,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 298.32738715333335,
+        "n_sg_orders": 32650,
+        "sg_submitted_vol": 920859.0,
+        "sg_filled_vol": 657782.0,
+        "sg_fill_rate_vol": 0.7143134833888793,
+        "n_sg_exec_sides": 48357
+      },
+      {
+        "cond": "C3",
+        "seed": 1002,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 46.059060000000045,
+        "median_abs_dmid_nz": 15.353020000000015,
+        "n_rt": 3743,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 302.20548578,
+        "n_sg_orders": 30558,
+        "sg_submitted_vol": 921358.0,
+        "sg_filled_vol": 687817.0,
+        "sg_fill_rate_vol": 0.7465252377468911,
+        "n_sg_exec_sides": 47933
+      },
+      {
+        "cond": "C2",
+        "seed": 1001,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 32.11511999999999,
+        "median_abs_dmid_nz": 10.705039999999997,
+        "n_rt": 4783,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.56059200000004,
+        "n_sg_orders": 31149,
+        "sg_submitted_vol": 789318.0,
+        "sg_filled_vol": 630459.0,
+        "sg_fill_rate_vol": 0.798738911313311,
+        "n_sg_exec_sides": 46606
+      },
+      {
+        "cond": "C2",
+        "seed": 1002,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 46.79311500000006,
+        "median_abs_dmid_nz": 15.597705000000019,
+        "n_rt": 4691,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 296.82477783333337,
+        "n_sg_orders": 34336,
+        "sg_submitted_vol": 944923.0,
+        "sg_filled_vol": 624350.0,
+        "sg_fill_rate_vol": 0.660741668897889,
+        "n_sg_exec_sides": 47265
+      },
+      {
+        "cond": "C3",
+        "seed": 1004,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 47.68900499999998,
+        "median_abs_dmid_nz": 15.896334999999993,
+        "n_rt": 4304,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 305.20141163333335,
+        "n_sg_orders": 29382,
+        "sg_submitted_vol": 1000632.0,
+        "sg_filled_vol": 529516.0,
+        "sg_fill_rate_vol": 0.5291815572558143,
+        "n_sg_exec_sides": 38489
+      },
+      {
+        "cond": "C2",
+        "seed": 1005,
+        "c_ticks_in": 43.29489000000004,
+        "c_ticks_recal": 33.490545000000054,
+        "median_abs_dmid_nz": 11.163515000000018,
+        "n_rt": 3556,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 303.0368917,
+        "n_sg_orders": 32455,
+        "sg_submitted_vol": 1122283.0,
+        "sg_filled_vol": 691664.0,
+        "sg_fill_rate_vol": 0.6163008795464245,
+        "n_sg_exec_sides": 45728
+      },
+      {
+        "cond": "C3",
+        "seed": 1005,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 31.681110000000103,
+        "median_abs_dmid_nz": 10.560370000000034,
+        "n_rt": 4825,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 304.68867572,
+        "n_sg_orders": 30869,
+        "sg_submitted_vol": 1346812.0,
+        "sg_filled_vol": 714196.0,
+        "sg_fill_rate_vol": 0.5302863354350867,
+        "n_sg_exec_sides": 44759
+      },
+      {
+        "cond": "C3",
+        "seed": 1003,
+        "c_ticks_in": 46.824389999999966,
+        "c_ticks_recal": 37.59669000000008,
+        "median_abs_dmid_nz": 12.532230000000027,
+        "n_rt": 3955,
+        "n_traded": 100,
+        "n_sg": 100,
+        "no_trade_frac": 0.0,
+        "price_mean": 298.6012552266667,
+        "n_sg_orders": 28561,
+        "sg_submitted_vol": 1131543.0,
+        "sg_filled_vol": 600024.0,
+        "sg_fill_rate_vol": 0.5302706127827224,
+        "n_sg_exec_sides": 39813
+      }
+    ]
+  }
+}

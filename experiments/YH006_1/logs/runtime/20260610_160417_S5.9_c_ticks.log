@@ -1,0 +1,19 @@
+2026-06-10 16:04:17,511 [INFO] ======================================================================
+2026-06-10 16:04:17,511 [INFO] S5.9 c_ticks self-consistency — conds=['C2', 'C3'], seeds=[1000], main_steps=300, baseline c_ticks=28.0
+2026-06-10 16:04:17,511 [INFO] ======================================================================
+2026-06-10 16:04:17,511 [INFO] [PhaseA] 2 run, n_workers=2, c_ticks={'C2': 28.0, 'C3': 28.0}
+2026-06-10 16:05:47,596 [INFO] [PhaseA] C3 seed=1000 c_ticks_in=28.000 recal=26.794 n_rt=3377 no_trade=0.00
+2026-06-10 16:05:48,737 [INFO] [PhaseA] C2 seed=1000 c_ticks_in=28.000 recal=29.555 n_rt=3807 no_trade=0.00
+2026-06-10 16:05:50,285 [INFO] [PhaseA] pooled c_ticks_recal={'C2': 29.554874999999953, 'C3': 26.79416999999998} (drift vs 28: {'C2': 1.0555312499999983, 'C3': 0.9569346428571421}) n_rt_base={'C2': 3807.0, 'C3': 3377.0}
+2026-06-10 16:05:50,285 [INFO] [PhaseA] endpoints={'C2': {'pooled_bin_var_slope': 0.10000000000000002, 'censored_frac': 0.8928571428571429, 'n_rt_total': 3807}, 'C3': {'pooled_bin_var_slope': 0.1398601398601399, 'censored_frac': 0.7092198581560284, 'n_rt_total': 3377}}
+2026-06-10 16:05:50,285 [INFO] [PhaseB] 2 run, n_workers=2, c_ticks={'C2': 29.554874999999953, 'C3': 26.79416999999998}
+2026-06-10 16:07:26,790 [INFO] [PhaseB] C3 seed=1000 c_ticks_in=26.794 recal=23.874 n_rt=3252 no_trade=0.00
+2026-06-10 16:07:28,912 [INFO] [PhaseB] C2 seed=1000 c_ticks_in=29.555 recal=29.305 n_rt=3707 no_trade=0.00
+2026-06-10 16:07:29,001 [INFO] [PhaseB] n_rt_recal={'C2': 3707.0, 'C3': 3252.0} Δn_rt={'C2': -0.026267402153926978, 'C3': -0.03701510216168197} KPI={'C2': 'H_friction', 'C3': 'H_friction'} overall=H_friction
+2026-06-10 16:07:29,022 [INFO] [PhaseB] funnel slope A→B Δ={'C2': -0.120979020979021, 'C3': 0.18181818181818182} judgment={'C2': 'modified', 'C3': 'modified'} (plan §4 主判定)
+2026-06-10 16:07:29,022 [INFO] [PhaseB] survival censored_frac Δ={'C2': 0.00804375804375801, 'C3': 0.031520882584712306}
+2026-06-10 16:07:29,022 [INFO] [PhaseB] 収束診断 c_ticks''/c_ticks'={'C2': 0.9915506325098662, 'C3': 0.8910320789933046} (1 から遠いほど 1 パス再較正は非収束)
+2026-06-10 16:07:29,023 [INFO] summary written: /Users/hasegawayuito/Documents/GitHub/speculation-game-info/experiments/YH006_1/logs/S5.9_c_ticks_recal_smoke.json
+2026-06-10 16:07:29,023 [INFO] ======================================================================
+2026-06-10 16:07:29,023 [INFO] S5.9 complete. logs/S5.9_c_ticks_recal.json を確認 → diff.md
+2026-06-10 16:07:29,023 [INFO] ======================================================================

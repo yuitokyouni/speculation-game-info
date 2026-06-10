@@ -1,0 +1,13 @@
+2026-06-10 16:42:13,033 [INFO] ======================================================================
+2026-06-10 16:42:13,033 [INFO] S5.9 c_ticks self-consistency — conds=['C2', 'C3'], seeds=[1000], main_steps=300, baseline c_ticks=28.0
+2026-06-10 16:42:13,033 [INFO] ======================================================================
+2026-06-10 16:42:13,033 [INFO] [PhaseA] 2 run, n_workers=2, c_ticks={'C2': 28.0, 'C3': 28.0}
+2026-06-10 16:43:39,339 [INFO] [PhaseA] C3 seed=1000 c_ticks_in=28.000 recal=26.794 n_rt=3377 no_trade=0.00
+2026-06-10 16:43:40,695 [INFO] [PhaseA] C2 seed=1000 c_ticks_in=28.000 recal=29.555 n_rt=3807 no_trade=0.00
+2026-06-10 16:43:41,903 [INFO] [PhaseA] SG fill_rate (vol, pooled median)={'C2': 1.7062984576592355, 'C3': 1.6494114630854264}
+2026-06-10 16:43:41,904 [INFO] [PhaseA] pooled c_ticks_recal={'C2': 29.554874999999953, 'C3': 26.79416999999998} (drift vs 28: {'C2': 1.0555312499999983, 'C3': 0.9569346428571421}) n_rt_base={'C2': 3807.0, 'C3': 3377.0}
+2026-06-10 16:43:41,904 [INFO] [PhaseA] endpoints={'C2': {'pooled_bin_var_slope': 0.10000000000000002, 'censored_frac': 0.8928571428571429, 'n_rt_total': 3807}, 'C3': {'pooled_bin_var_slope': 0.1398601398601399, 'censored_frac': 0.7092198581560284, 'n_rt_total': 3377}}
+2026-06-10 16:43:41,904 [INFO] summary written: /Users/hasegawayuito/Documents/GitHub/speculation-game-info/experiments/YH006_1/logs/S5.9_c_ticks_recal_smoke.json
+2026-06-10 16:43:41,904 [INFO] ======================================================================
+2026-06-10 16:43:41,904 [INFO] S5.9 complete. logs/S5.9_c_ticks_recal.json を確認 → diff.md
+2026-06-10 16:43:41,904 [INFO] ======================================================================
