@@ -26,15 +26,16 @@ def default_n_workers() -> int:
 
 def _worker_run_trial(
     args: Tuple[str, int, str, Optional[int], Optional[int], Optional[int],
-                Optional[int]],
+                Optional[int], Optional[int]],
 ) -> Tuple[str, int, float, int, int, Optional[str]]:
     """Worker 関数 — 1 trial 実行 + parquet 出力 + 結果サマリ返り。
 
     args: (cond_name, seed, out_dir_str, q_const_or_None,
-           mmfcn_order_volume_or_None, main_steps_or_None, tau_max_or_None)
+           mmfcn_order_volume_or_None, main_steps_or_None, tau_max_or_None,
+           shuffle_period_or_None)
     return: (cond, seed, runtime_sec, n_rt, n_sub, error_str_or_None)
     """
-    cond, seed, out_str, q_const, mmfcn_ov, main_steps, tau_max = args
+    cond, seed, out_str, q_const, mmfcn_ov, main_steps, tau_max, shuffle_period = args
     try:
         # Workerプロセス内 import (top-level import は heavy & forks 不要)
         from run_experiment import run_one_trial
@@ -43,6 +44,7 @@ def _worker_run_trial(
             cond, seed, out_dir=out_dir, is_lob_smoke=False,
             q_const=q_const, mmfcn_order_volume=mmfcn_ov,
             main_steps=main_steps, tau_max=tau_max,
+            shuffle_period=shuffle_period,
         )
         return (cond, seed, result.runtime_sec, result.n_round_trips,
                 result.n_substitutions, None)
@@ -61,6 +63,7 @@ def run_parallel_trials(
     mmfcn_order_volume: Optional[int] = None,
     main_steps: Optional[int] = None,
     tau_max: Optional[int] = None,
+    shuffle_period: Optional[int] = None,
 ) -> List[Tuple[int, float, int, int, Optional[str]]]:
     """seeds × cond を並列実行、(seed, runtime, n_rt, n_sub, err) のリストを返す。
 
@@ -79,7 +82,7 @@ def run_parallel_trials(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     args = [(cond, seed, str(out_dir), q_const, mmfcn_order_volume, main_steps,
-             tau_max)
+             tau_max, shuffle_period)
             for seed in seeds]
     logger.info(
         f"[parallel] cond={cond} n_seeds={len(seeds)} n_workers={n_workers} out={out_dir}"

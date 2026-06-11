@@ -24,13 +24,15 @@ class CondSpec:
     wealth_mode: str    # "uniform" | "pareto"
     q_rule: str         # "wealth" (Eq.1 ⌊w/B⌋) | "const" (A1 ablation)
     lifetime_cap: bool  # True for A3 ablation
+    wealth_shuffle: bool = False  # True for A4 ablation (S6r、saver hook 方式)
     notes: str = ""
 
     def asdict(self) -> Dict[str, Any]:
         return {
             "name": self.name, "world": self.world,
             "wealth_mode": self.wealth_mode, "q_rule": self.q_rule,
-            "lifetime_cap": self.lifetime_cap, "notes": self.notes,
+            "lifetime_cap": self.lifetime_cap,
+            "wealth_shuffle": self.wealth_shuffle, "notes": self.notes,
         }
 
 
@@ -108,7 +110,17 @@ CONDITIONS: Dict[str, CondSpec] = {
     "C3_A3": CondSpec(
         name="C3_A3", world="lob", wealth_mode="pareto",
         q_rule="wealth", lifetime_cap=True,
-        notes="A3 ablation: lifetime cap τ_max (LOB Pareto)",
+        notes="A3 ablation: lifetime cap τ_max (LOB Pareto)。S6r で凍結、A4 で置換",
+    ),
+    "C2_A4": CondSpec(
+        name="C2_A4", world="lob", wealth_mode="uniform",
+        q_rule="wealth", lifetime_cap=False, wealth_shuffle=True,
+        notes="A4 ablation 対照腕: wealth shuffle 周期 K (LOB uniform、S6r)",
+    ),
+    "C3_A4": CondSpec(
+        name="C3_A4", world="lob", wealth_mode="pareto",
+        q_rule="wealth", lifetime_cap=False, wealth_shuffle=True,
+        notes="A4 ablation 主役: wealth shuffle 周期 K (LOB Pareto、S6r)",
     ),
 }
 

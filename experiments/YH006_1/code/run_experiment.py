@@ -61,6 +61,7 @@ class SimResult:
     runtime_sec: float
     n_round_trips: int
     n_substitutions: int
+    n_shuffles: int = 0  # S6r A4: WealthShuffleSaver の発火回数 (A4 以外は 0)
 
     def to_parquets(self, out_dir: Path) -> Dict[str, Path]:
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -188,6 +189,7 @@ def run_lob_trial_smoke(
     q_const: Optional[int] = None,
     mmfcn_order_volume: Optional[int] = None,
     tau_max: Optional[int] = None,
+    shuffle_period: Optional[int] = None,
 ) -> SimResult:
     """LOB smoke (S2 plan v2 §3.5 / 修正 4): WInitLoggingSpeculationAgent の
     wiring 動作確認用。短縮 sim 長で agent parquet に w_init non-NaN を assertion。
@@ -227,6 +229,17 @@ def run_lob_trial_smoke(
             f"cond={cond_name} has lifetime_cap=True but tau_max arg not provided. "
             f"S6 較正値 (logs/S6_tau_max_calibration.json) を渡してください。"
         )
+    # S6r (ablation A4): wealth shuffle は saver hook 方式 (agent class 非変更)
+    is_ablation_a4 = bool(getattr(cond, "wealth_shuffle", False))
+    if is_ablation_a4 and (is_ablation_a1 or is_ablation_a3):
+        raise NotImplementedError(
+            f"cond={cond_name}: A4 × A1/A3 combine は S6r scope 外"
+        )
+    if is_ablation_a4 and shuffle_period is None:
+        raise ValueError(
+            f"cond={cond_name} has wealth_shuffle=True but shuffle_period arg "
+            f"not provided. S6r plan §0.3 の K (=121) を渡してください。"
+        )
 
     # Phase 1 configs を流用、ただし SG agent class を WInitLogging 版に差し替える
     if cond.wealth_mode == "uniform":
@@ -265,10 +278,19 @@ def run_lob_trial_smoke(
         LifetimeCapSpeculationAgent,
     )
 
-    saver = OrderTrackingSaver()
+    if is_ablation_a4:
+        from wealth_shuffle import WealthShuffleSaver  # type: ignore
+        saver = WealthShuffleSaver(
+            shuffle_period=int(shuffle_period),
+            warmup_steps=warmup_steps, seed=seed,
+        )
+    else:
+        saver = OrderTrackingSaver()
     runner = SequentialRunner(
         settings=cfg, prng=_stdlib_random.Random(seed), logger=saver,
     )
+    if is_ablation_a4:
+        saver.simulator = runner.simulator
     runner.class_register(WInitLoggingSpeculationAgent)
     runner.class_register(QConstSpeculationAgent)
     runner.class_register(LifetimeCapSpeculationAgent)
@@ -340,6 +362,7 @@ def run_lob_trial_smoke(
         runtime_sec=elapsed,
         n_round_trips=len(rt_df),
         n_substitutions=len(sub_events),
+        n_shuffles=int(getattr(saver, "n_shuffles", 0)),
     )
 
 
@@ -353,6 +376,7 @@ def run_lob_trial(
     mmfcn_order_volume: Optional[int] = None,
     main_steps: Optional[int] = None,
     tau_max: Optional[int] = None,
+    shuffle_period: Optional[int] = None,
 ) -> SimResult:
     """LOB full-length 1 trial (warmup=200, main=1500、Phase 1 default 設定)。
 
@@ -376,6 +400,11 @@ def run_lob_trial(
             f"cond={cond_name} requires tau_max (lifetime_cap=True). "
             f"S6 較正値を呼び出し側 (ablation_a3_ensemble.py) で指定する。"
         )
+    if getattr(cond, "wealth_shuffle", False) and shuffle_period is None:
+        raise ValueError(
+            f"cond={cond_name} requires shuffle_period (wealth_shuffle=True). "
+            f"S6r plan §0.3 の K を呼び出し側 (ablation_a4_ensemble.py) で指定する。"
+        )
     return run_lob_trial_smoke(
         cond_name, seed,
         warmup_steps=p["warmup_steps"],
@@ -387,6 +416,7 @@ def run_lob_trial(
         q_const=q_const,
         mmfcn_order_volume=mmfcn_order_volume,
         tau_max=tau_max,
+        shuffle_period=shuffle_period,
     )
 
 
@@ -400,6 +430,7 @@ def run_one_trial(
     mmfcn_order_volume: Optional[int] = None,
     main_steps: Optional[int] = None,
     tau_max: Optional[int] = None,
+    shuffle_period: Optional[int] = None,
 ) -> SimResult:
     cond = CONDITIONS[cond_name]
     if cond.world == "agg":
@@ -414,6 +445,7 @@ def run_one_trial(
                 cond_name, seed, q_const=q_const,
                 mmfcn_order_volume=mmfcn_order_volume,
                 tau_max=tau_max,
+                shuffle_period=shuffle_period,
             )
         else:
             result = run_lob_trial(
@@ -421,6 +453,7 @@ def run_one_trial(
                 mmfcn_order_volume=mmfcn_order_volume,
                 main_steps=main_steps,
                 tau_max=tau_max,
+                shuffle_period=shuffle_period,
             )
     else:
         raise ValueError(f"unknown world: {cond.world}")
