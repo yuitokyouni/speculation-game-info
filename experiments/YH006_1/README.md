@@ -394,3 +394,49 @@ agg (green) は log-y で絶滅まで一直線 (定常 hazard の視覚証明)�
 
 - A3 (lifetime cap) の暗黙前提「観測された長 lifetime は定常」が実証された — A3 は artifact でなく**実在する凍結を人為的に解除する**介入として解釈できる。S6 進行 GO
 - Layer-2-timescale 留保 (LOB T=1500 = Katahira/33) は「hand-wave の留保」から「測定済み result」に格上げ: T を 6.7x 延長しても凍結は 1 event も解けない
+
+---
+
+## Stage S6r — A4 ablation (wealth shuffle、C2_A4/C3_A4) + 仮説 A revised 判定
+
+A3 凍結 (性能スパイラル + substitute wealth 非 Pareto、`plans/design_review_20260610.md` 追記) を受けた差し替え。K=121、対称 DiD、KPI は pooled bootstrap CI primary (`plans/stage_S6r_plan.md` §0.4)。
+
+### Pooled bin_var_slope (8 条件、seed-cluster bootstrap 95% CI)
+
+| cond | slope | 95% CI |
+|---|---:|---|
+| C0u | -0.4036 | [-0.5824, -0.2784] |
+| C0p | -0.2879 | [-0.4983, -0.1956] |
+| C2 | -0.0593 | [-0.3947, +0.2199] |
+| C3 | -0.1264 | [-0.4529, +0.1154] |
+| C2_A1 | -0.3071 | [-0.3607, -0.1049] |
+| C3_A1 | -0.0901 | [-0.3536, +0.1648] |
+| C2_A4 | -0.3187 | [-0.4045, -0.0379] |
+| C3_A4 | -0.2088 | [-0.5114, -0.0466] |
+
+**Pooled interaction**: S3 = -0.1642 [-0.6378, +0.2970], A4 = -0.1207 [-0.5017, +0.2601], shrinkage = -0.0435 [-0.5684, +0.4561]
+
+**Primary KPI 判定: inconclusive (縮小方向だが CI が 0 を跨ぐ)**
+
+### Secondary (trial-level seed-paired shrinkage)
+
+| metric | S3 | A4 | shrinkage [CI] | CI 0 排除 | 縮小 |
+|---|---:|---:|---|---|---|
+| rho_pearson | -0.0201 | -0.0260 | +0.0058 [-0.0214, +0.0325] | ✗ | ✗ |
+| rho_spearman | -0.0090 | -0.0174 | +0.0084 [-0.0080, +0.0250] | ✗ | ✗ |
+| tau_kendall | -0.0070 | -0.0139 | +0.0070 [-0.0062, +0.0204] | ✗ | ✗ |
+| bin_var_slope | +0.0046 | +0.0153 | -0.0107 [-0.0789, +0.0570] | ✗ | ✗ |
+| q90_q10_slope_diff | +0.0061 | -0.0094 | +0.0155 [-0.0076, +0.0390] | ✗ | ✗ |
+
+**非特異的効果 (C2_A4 − C2)**: -0.1299 [-0.4836, +0.2044]
+
+### Manipulation check (成功条件ではない)
+
+| check | C2 | C3 | C2_A4 | C3_A4 |
+|---|---:|---:|---:|---:|
+| wealth_persistence_rho | +0.2369 | -0.0107 | +0.0059 | +0.0050 |
+| corr_winit_wt_T1 | +0.2369 | -0.0107 | +0.0059 | +0.0050 |
+| corr_winit_wt_T5 | +0.2369 | -0.0107 | +0.0059 | +0.0050 |
+| corr_winit_wt_T10 | +0.2369 | -0.0107 | +0.0059 | +0.0050 |
+
+注意: A4 条件の rt parquet の `w_open`/`w_close` 列は shuffle を考慮しない再構成のため無効 (plan §0.2)。Layer 2 timescale concern (T=1500) は継続。
