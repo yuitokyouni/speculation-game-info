@@ -1,0 +1,22 @@
+2026-06-12 02:11:54,662 [INFO] ======================================================================
+2026-06-12 02:11:54,662 [INFO] S7 — freeze→funnel 統合分析 (③→①→②→SF)
+2026-06-12 02:11:54,662 [INFO] ======================================================================
+2026-06-12 02:11:58,692 [INFO] [③] C0u: M_bin_var_floor=-0.398 M_bin_var_nz=+0.991 M_iqr=+0.977 M_sd=+1.000 rho_pearson_abs=+0.344 frac_zero_slope=-0.398
+2026-06-12 02:12:01,702 [INFO] [③] C0p: M_bin_var_floor=-0.433 M_bin_var_nz=+0.996 M_iqr=+0.967 M_sd=+0.974 rho_pearson_abs=+0.347 frac_zero_slope=-0.433
+2026-06-12 02:12:01,761 [INFO] [③] C2: M_bin_var_floor=-0.059 M_bin_var_nz=+0.908 M_iqr=+0.840 M_sd=+1.000 rho_pearson_abs=+0.256 frac_zero_slope=-0.196
+2026-06-12 02:12:01,823 [INFO] [③] C3: M_bin_var_floor=-0.126 M_bin_var_nz=+1.000 M_iqr=+0.941 M_sd=+0.995 rho_pearson_abs=+0.275 frac_zero_slope=-0.137
+2026-06-12 02:12:04,135 [INFO] [③] canonical metric = M_iqr
+2026-06-12 02:12:04,244 [INFO] [①] ov=15: n_rt_mean=4082 censor=0.715 funnel_pooled=+0.637
+2026-06-12 02:12:04,356 [INFO] [①] ov=30: n_rt_mean=4212 censor=0.722 funnel_pooled=+0.921
+2026-06-12 02:12:04,507 [INFO] [①] ov=60: n_rt_mean=5169 censor=0.708 funnel_pooled=+0.083
+2026-06-12 02:12:04,638 [INFO] [①] ov=120: n_rt_mean=6090 censor=0.724 funnel_pooled=+0.871
+2026-06-12 02:12:07,646 [INFO] [①] monotonicity: {'spearman_ov_funnel': 0.13459547551454137, 'spearman_ov_n_rt': 0.689128834634452, 'spearman_ov_censored': 0.07309588165941555, 'n_points': 24} | agg(C0p) ref funnel = +0.967
+2026-06-12 02:12:12,261 [INFO] [②] C0u-vs-C2: slope agg=+0.957 lob=+0.843 iqr_ratio_med=0.750 → alpha-like (profile 同形)
+2026-06-12 02:12:12,265 [INFO] [②] C0p-vs-C3: slope agg=+0.905 lob=+0.820 iqr_ratio_med=1.000 → alpha-like (profile 同形)
+2026-06-12 02:12:12,283 [INFO] [SF] C2_sg (n=6): kurt=+8.61 acf|r|(1/5/10)=+0.663/+0.239/+0.135 hill=3.03 zero_frac=0.00
+2026-06-12 02:12:12,298 [INFO] [SF] C3_sg (n=6): kurt=+7.85 acf|r|(1/5/10)=+0.619/+0.190/+0.111 hill=3.28 zero_frac=0.00
+2026-06-12 02:12:12,306 [INFO] [SF] FCN_only (n=3): kurt=-0.68 acf|r|(1/5/10)=+0.223/+0.039/+0.068 hill=13.04 zero_frac=0.00
+2026-06-12 02:12:13,482 [INFO] [output] saved: S7_summary_for_diff.json
+2026-06-12 02:12:13,482 [INFO] ======================================================================
+2026-06-12 02:12:13,482 [INFO] S7 analysis complete
+2026-06-12 02:12:13,482 [INFO] ======================================================================

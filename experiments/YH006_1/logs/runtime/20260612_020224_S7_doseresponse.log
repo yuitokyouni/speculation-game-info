@@ -1,0 +1,17 @@
+2026-06-12 02:02:24,069 [INFO] S7 dose-response runs: 12 C3-jobs (ov × seed) + 3 FCN-only
+2026-06-12 02:06:52,302 [INFO] [c3] ov=15 seed=1002 done: runtime=266s n_rt=3,194
+2026-06-12 02:09:28,610 [INFO] [c3] ov=15 seed=1003 done: runtime=422s n_rt=3,673
+2026-06-12 02:09:28,610 [INFO] [c3] ov=15 seed=1004 done: runtime=249s n_rt=4,599
+2026-06-12 02:09:28,611 [INFO] [c3] ov=15 seed=1005 done: runtime=231s n_rt=3,669
+2026-06-12 02:09:28,611 [INFO] [c3] ov=60 seed=1002 done: runtime=188s n_rt=4,509
+2026-06-12 02:09:28,611 [INFO] [c3] ov=60 seed=1003 done: runtime=382s n_rt=4,145
+2026-06-12 02:09:28,611 [INFO] [c3] ov=60 seed=1004 done: runtime=231s n_rt=4,966
+2026-06-12 02:09:28,611 [INFO] [c3] ov=60 seed=1005 done: runtime=296s n_rt=6,466
+2026-06-12 02:10:15,517 [INFO] [c3] ov=120 seed=1002 done: runtime=280s n_rt=7,275
+2026-06-12 02:10:15,517 [INFO] [c3] ov=120 seed=1003 done: runtime=216s n_rt=4,444
+2026-06-12 02:10:37,476 [INFO] [c3] ov=120 seed=1004 done: runtime=259s n_rt=5,073
+2026-06-12 02:11:28,698 [INFO] [c3] ov=120 seed=1005 done: runtime=293s n_rt=7,247
+2026-06-12 02:11:28,699 [INFO] [fcn-only] seed=1000 done: n_prices=1500
+2026-06-12 02:11:28,699 [INFO] [fcn-only] seed=1001 done: n_prices=1500
+2026-06-12 02:11:28,699 [INFO] [fcn-only] seed=1002 done: n_prices=1500
+2026-06-12 02:11:28,944 [INFO] S7 runs complete, errors=0

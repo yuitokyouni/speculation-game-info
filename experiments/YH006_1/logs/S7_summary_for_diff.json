@@ -1,0 +1,152 @@
+{
+  "stage": "S7",
+  "canonical_funnel_metric": "M_iqr",
+  "metric_candidates": [
+    {
+      "M_bin_var_floor": -0.39780219780219783,
+      "M_bin_var_nz": 0.9912087912087912,
+      "M_iqr": 0.9767735348900167,
+      "M_sd": 1.0,
+      "rho_pearson_abs": 0.3437805728359045,
+      "frac_zero_slope": -0.39780219780219783,
+      "cond": "C0u",
+      "n_rt": 20892783
+    },
+    {
+      "M_bin_var_floor": -0.432967032967033,
+      "M_bin_var_nz": 0.9956043956043955,
+      "M_iqr": 0.9668354550447552,
+      "M_sd": 0.9736263736263736,
+      "rho_pearson_abs": 0.34744973780768545,
+      "frac_zero_slope": -0.432967032967033,
+      "cond": "C0p",
+      "n_rt": 20901788
+    },
+    {
+      "M_bin_var_floor": -0.059340659340659345,
+      "M_bin_var_nz": 0.9076923076923077,
+      "M_iqr": 0.8404444204751433,
+      "M_sd": 1.0,
+      "rho_pearson_abs": 0.2555696676503407,
+      "frac_zero_slope": -0.1956043956043956,
+      "cond": "C2",
+      "n_rt": 435291
+    },
+    {
+      "M_bin_var_floor": -0.12637362637362637,
+      "M_bin_var_nz": 1.0,
+      "M_iqr": 0.9406973454251578,
+      "M_sd": 0.9945054945054945,
+      "rho_pearson_abs": 0.2748238407683741,
+      "frac_zero_slope": -0.13736263736263735,
+      "cond": "C3",
+      "n_rt": 484512
+    }
+  ],
+  "dose_response": [
+    {
+      "order_volume": 15,
+      "n_seeds": 6,
+      "n_rt_total": 24494,
+      "n_rt_mean": 4082.3333333333335,
+      "censored_frac_mean": 0.7146212905413916,
+      "funnel_pooled": 0.6371764616574127,
+      "funnel_per_seed_mean": 0.5726368649260736
+    },
+    {
+      "order_volume": 30,
+      "n_seeds": 6,
+      "n_rt_total": 25271,
+      "n_rt_mean": 4211.833333333333,
+      "censored_frac_mean": 0.7220833364665519,
+      "funnel_pooled": 0.9212062087941435,
+      "funnel_per_seed_mean": 0.6036909081724886
+    },
+    {
+      "order_volume": 60,
+      "n_seeds": 6,
+      "n_rt_total": 31014,
+      "n_rt_mean": 5169.0,
+      "censored_frac_mean": 0.70762164751894,
+      "funnel_pooled": 0.0829774407037447,
+      "funnel_per_seed_mean": 0.5996696404389913
+    },
+    {
+      "order_volume": 120,
+      "n_seeds": 6,
+      "n_rt_total": 36541,
+      "n_rt_mean": 6090.166666666667,
+      "censored_frac_mean": 0.7242982468626317,
+      "funnel_pooled": 0.8714831847494955,
+      "funnel_per_seed_mean": 0.644186597764827
+    }
+  ],
+  "monotonicity": {
+    "spearman_ov_funnel": 0.13459547551454137,
+    "spearman_ov_n_rt": 0.689128834634452,
+    "spearman_ov_censored": 0.07309588165941555,
+    "n_points": 24
+  },
+  "agg_ref_funnel": 0.9668354550447552,
+  "matched_horizon": [
+    {
+      "pair": "C0u-vs-C2",
+      "n_common_bins": 9,
+      "iqr_ratio_median": 0.75,
+      "iqr_slope_agg": 0.9574271077563381,
+      "iqr_slope_lob": 0.8433738561749831,
+      "verdict": "alpha-like (profile 同形)"
+    },
+    {
+      "pair": "C0p-vs-C3",
+      "n_common_bins": 9,
+      "iqr_ratio_median": 1.0,
+      "iqr_slope_agg": 0.9052038109696288,
+      "iqr_slope_lob": 0.8195179767173539,
+      "verdict": "alpha-like (profile 同形)"
+    }
+  ],
+  "sf_readout": [
+    {
+      "kurtosis_excess": 8.614644086902686,
+      "acf_absr_1": 0.6632240187900205,
+      "acf_absr_5": 0.2390523931952772,
+      "acf_absr_10": 0.13516126967278147,
+      "acf_absr_20": 0.08929346011753128,
+      "acf_r_1": -0.7476480067714214,
+      "hill_alpha_absr": 3.0288555386993545,
+      "frac_zero_r": 0.004002668445630421,
+      "n_obs": 1499.0,
+      "source": "C2_sg",
+      "n_seeds": 6
+    },
+    {
+      "kurtosis_excess": 7.847871820868484,
+      "acf_absr_1": 0.6192398225880839,
+      "acf_absr_5": 0.19046482119072164,
+      "acf_absr_10": 0.11141165410895223,
+      "acf_absr_20": 0.04031139994252157,
+      "acf_r_1": -0.7514775598351625,
+      "hill_alpha_absr": 3.280953372157149,
+      "frac_zero_r": 0.002334889926617745,
+      "n_obs": 1499.0,
+      "source": "C3_sg",
+      "n_seeds": 6
+    },
+    {
+      "kurtosis_excess": -0.6780575564592772,
+      "acf_absr_1": 0.22269890112191412,
+      "acf_absr_5": 0.03861074381210942,
+      "acf_absr_10": 0.06847393718166574,
+      "acf_absr_20": 0.05311140896552347,
+      "acf_r_1": -0.625619846062511,
+      "hill_alpha_absr": 13.036081215002579,
+      "frac_zero_r": 0.0,
+      "n_obs": 1499.0,
+      "source": "FCN_only",
+      "n_seeds": 3
+    }
+  ],
+  "agg_diag_seeds_note": "agg conds は seed 1000-1019 subsample (メモリ対策)",
+  "timestamp": "2026-06-12T02:12:13.481789"
+}
