@@ -1,0 +1,30 @@
+2026-06-12 10:18:14,751 [INFO] ======================================================================
+2026-06-12 10:18:14,751 [INFO] S7.1 — φ vs ΔW funnel 分解 (拡散指数 b / zero 指数 a / Spearman)
+2026-06-12 10:18:14,756 [INFO] ======================================================================
+2026-06-12 10:18:25,096 [INFO] [load] C0u (agg): full=20 match=20 seeds
+2026-06-12 10:18:35,322 [INFO] [load] C0p (agg): full=20 match=20 seeds
+2026-06-12 10:18:37,467 [INFO] [load] C2 (lob): full=100 match=100 seeds
+2026-06-12 10:18:39,685 [INFO] [load] C3 (lob): full=100 match=100 seeds
+2026-06-12 10:18:42,624 [INFO] [pooled-matched cap=32] C0u: b_phi=+0.361 b_dW=+0.306 a_zero=-0.334 n_rt=10442177
+2026-06-12 10:18:45,251 [INFO] [pooled-matched cap=32] C0p: b_phi=+0.366 b_dW=+0.321 a_zero=-0.327 n_rt=10441213
+2026-06-12 10:18:45,388 [INFO] [pooled-matched cap=32] C2: b_phi=+0.128 b_dW=+0.059 a_zero=-1.185 n_rt=427522
+2026-06-12 10:18:45,493 [INFO] [pooled-matched cap=32] C3: b_phi=+0.128 b_dW=+0.083 a_zero=-1.014 n_rt=475998
+2026-06-12 10:18:46,302 [INFO] --- FULL range (adaptive per-seed bins) ---
+2026-06-12 10:18:46,546 [INFO] [C0u] b_phi_iqr=+0.442 b_dW_iqr=+0.443 amp=+0.001 a_zero=+0.031 M_iqr(φ)=+0.953 M_iqr(ΔW)=+0.912
+2026-06-12 10:18:46,554 [INFO] [C0p] b_phi_iqr=+0.455 b_dW_iqr=+0.457 amp=+0.002 a_zero=+0.054 M_iqr(φ)=+0.940 M_iqr(ΔW)=+0.917
+2026-06-12 10:18:46,573 [INFO] [C2] b_phi_iqr=+0.119 b_dW_iqr=+0.046 amp=-0.073 a_zero=+0.073 M_iqr(φ)=+0.627 M_iqr(ΔW)=+0.298
+2026-06-12 10:18:46,575 [INFO] [C3] b_phi_iqr=+0.116 b_dW_iqr=+0.082 amp=-0.034 a_zero=-0.041 M_iqr(φ)=+0.621 M_iqr(ΔW)=+0.374
+2026-06-12 10:18:46,599 [INFO] [interaction] b_phi_iqr: -0.016 [-0.048,+0.017] (LOB wealth eff=-0.003, agg=+0.012)
+2026-06-12 10:18:46,604 [INFO] [interaction] b_dW_iqr: +0.022 [-0.026,+0.070] (LOB wealth eff=+0.035, agg=+0.014)
+2026-06-12 10:18:46,607 [INFO] [interaction] amp_iqr: +0.038 [+0.001,+0.074]
+2026-06-12 10:18:46,615 [INFO] --- MATCHED support (common bins, horizon<=32) ---
+2026-06-12 10:18:46,617 [INFO] [C0u] b_phi_iqr=+0.363 b_dW_iqr=+0.310 amp=-0.053 a_zero=-0.332 M_iqr(φ)=+0.928 M_iqr(ΔW)=+0.862
+2026-06-12 10:18:46,621 [INFO] [C0p] b_phi_iqr=+0.360 b_dW_iqr=+0.316 amp=-0.044 a_zero=-0.322 M_iqr(φ)=+0.928 M_iqr(ΔW)=+0.865
+2026-06-12 10:18:46,622 [INFO] [C2] b_phi_iqr=+0.147 b_dW_iqr=+0.056 amp=-0.091 a_zero=-0.019 M_iqr(φ)=+0.708 M_iqr(ΔW)=+0.381
+2026-06-12 10:18:46,623 [INFO] [C3] b_phi_iqr=+0.156 b_dW_iqr=+0.106 amp=-0.050 a_zero=-0.162 M_iqr(φ)=+0.723 M_iqr(ΔW)=+0.436
+2026-06-12 10:18:46,629 [INFO] [interaction] b_phi_iqr: +0.013 [-0.016,+0.041] (LOB wealth eff=+0.010, agg=-0.003)
+2026-06-12 10:18:46,635 [INFO] [interaction] b_dW_iqr: +0.043 [+0.001,+0.086] (LOB wealth eff=+0.050, agg=+0.006)
+2026-06-12 10:18:46,639 [INFO] [interaction] amp_iqr: +0.031 [-0.007,+0.068]
+2026-06-12 10:19:00,258 [INFO] [figure] C:\Users\YuitoHasegawa\OneDrive - ペイシャンスキャピタルグループ株式会社\ドキュメント\GitHub\speculation-game-info\experiments\YH006_1\outputs\figures\fig_S71_phi_vs_dW_funnel.png
+2026-06-12 10:19:00,262 [INFO] [output] S71_summary_for_diff.json + tab_S71_per_seed_*.csv
+2026-06-12 10:19:00,262 [INFO] ======================================================================
