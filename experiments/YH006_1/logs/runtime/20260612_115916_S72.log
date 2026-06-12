@@ -1,0 +1,16 @@
+2026-06-12 11:59:16,878 [INFO] ======================================================================
+2026-06-12 11:59:16,878 [INFO] S7.2 — 認知価格 structure function (β vs selection 分離 gate)
+2026-06-12 11:59:16,884 [INFO] ======================================================================
+2026-06-12 11:59:17,191 [INFO] [parity] C2: 再構成 P vs trial delta_g 一致率 = 0.330 (n=4276) — 1.0 なら S5.9 prices と S3 RT が同一 run
+2026-06-12 11:59:17,225 [INFO] [parity] C3: 再構成 P vs trial delta_g 一致率 = 0.353 (n=3876) — 1.0 なら S5.9 prices と S3 RT が同一 run
+2026-06-12 12:01:49,222 [INFO] [C0u] b_struct(IQR) per-seed mean = +0.366 [+0.350,+0.382]  pooled = +0.365  b_struct(SD) = +0.431  (n_seed=6)
+2026-06-12 12:03:42,677 [INFO] [C0p] b_struct(IQR) per-seed mean = +0.359 [+0.346,+0.372]  pooled = +0.358  b_struct(SD) = +0.430  (n_seed=6)
+2026-06-12 12:03:42,966 [INFO] [C2] b_struct(IQR) per-seed mean = +0.311 [+0.276,+0.346]  pooled = +0.362  b_struct(SD) = +0.329  (n_seed=6)
+2026-06-12 12:03:43,073 [INFO] [C3] b_struct(IQR) per-seed mean = +0.290 [+0.251,+0.328]  pooled = +0.288  b_struct(SD) = +0.293  (n_seed=6)
+2026-06-12 12:03:43,074 [INFO] ----------------------------------------------------------------------
+2026-06-12 12:03:43,074 [INFO] [判定] b_struct: agg=+0.363 LOB=+0.301 ratio(LOB/agg)=0.83
+2026-06-12 12:03:43,075 [INFO] [判定] α 寄り: 認知過程の structure function 指数が agg/LOB でほぼ同じ → 完了RT funnel の圧縮 (S7.1 の 0.13) は selection 由来の公算大
+2026-06-12 12:03:43,077 [INFO] [参照] S7.1 完了RT b_φ: agg≈0.36 / LOB≈0.13 (ratio≈0.36)
+2026-06-12 12:03:47,202 [INFO] [figure] C:\Users\YuitoHasegawa\OneDrive - ペイシャンスキャピタルグループ株式会社\ドキュメント\GitHub\speculation-game-info\experiments\YH006_1\outputs\figures\fig_S72_structure_function.png
+2026-06-12 12:03:47,206 [INFO] [output] S72_summary_for_diff.json
+2026-06-12 12:03:47,206 [INFO] ======================================================================

@@ -156,19 +156,55 @@ T=10k 価格ロギング再走で確認するのが望ましい (S7.1 候補、�
 
 (full-range adaptive bin でも同傾向: agg b_φ≈0.45 / LOB b_φ≈0.12)
 
-### 結論
+### 結論 (⚠ #1 は S7.2 で大部分撤回、下記「S7.2」節)
 
-1. **funnel magnitude は LOB で本当に弱い (slope ~3 倍フラット)**。Spearman (S7 §②) は
+1. ~~**funnel magnitude は LOB で本当に弱い (slope ~3 倍フラット)**~~。Spearman (S7 §②) は
    単調性が飽和し magnitude 差を隠していた。level (IQR 水準) は同程度 — slope だけが圧縮。
-   → S7 の「α (量だけ変わる)」は誤り、β 寄り (realized per-RT funnel 勾配が圧縮)。
+   ~~→ S7 の「α (量だけ変わる)」は誤り、β 寄り (realized per-RT funnel 勾配が圧縮)~~。
+   **→ S7.2 で de-selection gate を通したところ、この ~3 倍圧縮の約 3/4 は completion-selection
+   (α) と判明。真の機構由来は ~17% のみ。S7.1 の β 結論は大部分撤回し、S7「機構ほぼ無傷」
+   寄りに戻る (小さな真残差つき)。**
 2. **q は funnel slope を急峻化しない** (amp ≤ 0)。富増幅は level に乗り、保有期間勾配には
    乗らない。「F1 を ΔW で測れば interaction が出る」仮説も棄却 (b_ΔW interaction
    +0.043 [+0.001,+0.086]、amp interaction +0.031 [−0.007,+0.068] でほぼ 0 跨ぎ)。
 3. **zero 除外は cherry-picking でない**: zero-fraction は agg/LOB ほぼ同形・非単調
    (h≈2-3 でピーク→減衰)、短 horizon 偏在せず → funnel 比較を歪めない。S7 ③ の
    zero-floor artifact 結論は維持。
-4. caveat: **fill-selection** (完了 RT のみ観測) で「機構変質 vs 長 RT の censoring」は
-   分離不能。**離散性** (φ 小整数) は連続な ΔW で同傾向を確認して打ち消し済。
+4. caveat: ~~**fill-selection** (完了 RT のみ観測) で「機構変質 vs 長 RT の censoring」は
+   分離不能~~ → **S7.2 で分離・解決 (下記)**。**離散性** (φ 小整数) は連続な ΔW で同傾向を
+   確認して打ち消し済。
+
+## S7.2 — de-selection gate: β は大部分が selection だった (2026-06-12)
+
+Yuito 指摘: S7.1 の「level 保存・slope 圧縮」という β signature は selection-on-completion が
+出す signature と同型 (matched support 内でも上位 bin ほど LOB 完了 RT は fill-lucky な部分集合)。
+分離が #2(i) を finding にするゲート。
+
+**手法**: 認知価格 P(t) の **無条件 structure function** S(h)=IQR_t(P(t+h)−P(t)) を測る
+(position 非参照 = completion-selection も fill-luck も原理的に入らない)。完了RT funnel は
+S(h) 母集団の選択された部分標本。スクリプト `code/s72_cognitive_structure_function.py`、
+出力 `logs/S72_summary_for_diff.json` / `outputs/figures/fig_S72_structure_function.png`。
+agg = simulate_aggregate 再走の cognitive_prices、LOB = `_s59_cticks/PhaseA` 価格系列 (6 seed,
+c_ticks=28) から P 再構成。再構成式は agg で厳密 P と一致率 1.0 検証済 (boundary 差は定数シフトで
+structure function 無影響)。
+
+| | b_struct (無条件) | b_completed (S7.1) |
+|---|---:|---:|
+| agg (C0u/C0p) | **+0.36** | +0.36 |
+| LOB (C2/C3) | **+0.30** | +0.13 |
+| ratio LOB/agg | **0.83** | 0.36 |
+
+- agg 対照: b_struct ≈ b_completed (両 0.36) → 凍結なし世界で両者一致、手法 valid・selection なし
+- LOB: b_struct(0.30) ≫ b_completed(0.13)。無条件の認知価格過程は agg より **~17% しか
+  フラットでない** のに完了RT funnel は **3 倍フラット**
+- **判定**: slope 圧縮の内訳は機構 0.36→0.30 (Δ0.06) + selection 0.30→0.13 (Δ0.17)
+  → **約 3/4 が completion-selection**。S7.1 の β は大部分撤回、真の機構効果は ~17% の小残差
+- **freeze の funnel への支配的効果 = どの RT が完了するか (selection)**、per-step 認知機構の変質
+  ではない。S7「機構ほぼ無傷」に近い所へ着地 (3 回転して収束)
+
+**caveat**: 無条件版 (entry-time も de-select)。位置依存 faithful 版 (全 open position 未実現
+|Δφ|、凍結込み) は P(t)・凍結 entry が未永続化で **LOB=Mac 再走が要る → optional 確認に格下げ**
+(無条件版で ratio 0.83 vs 0.36 の大差が出ており selection 支配の結論は覆りにくい)。6 seed。
 
 ## Limitations / 残作業
 

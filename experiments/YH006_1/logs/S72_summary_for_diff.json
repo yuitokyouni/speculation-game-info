@@ -1,0 +1,85 @@
+{
+  "stage": "S7.2",
+  "purpose": "認知価格 P(t) の無条件 structure function で β vs selection を分離",
+  "design": {
+    "seeds": [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004,
+      1005
+    ],
+    "H_MAX": 32,
+    "c_ticks_lob": 28.0,
+    "agg_source": "simulate_aggregate 再走 (cognitive_prices)",
+    "lob_source": "data/_s59_cticks/PhaseA/prices_*.parquet 再構成"
+  },
+  "parity_lob_recon_vs_trial": {
+    "C2": {
+      "frac_match": 0.32974742750233865,
+      "n": 4276
+    },
+    "C3": {
+      "frac_match": 0.35319917440660475,
+      "n": 3876
+    }
+  },
+  "per_condition": {
+    "C0u": {
+      "cond": "C0u",
+      "world": "agg",
+      "b_struct_iqr_mean": 0.36602172409261136,
+      "b_struct_iqr_ci": [
+        0.3504228041643851,
+        0.3816206440208376
+      ],
+      "b_struct_iqr_pooled": 0.3645343543397191,
+      "b_struct_sd_mean": 0.4312171785008337,
+      "n_seed": 6
+    },
+    "C0p": {
+      "cond": "C0p",
+      "world": "agg",
+      "b_struct_iqr_mean": 0.3590293020657447,
+      "b_struct_iqr_ci": [
+        0.34639875254836766,
+        0.3716598515831217
+      ],
+      "b_struct_iqr_pooled": 0.3577983707437782,
+      "b_struct_sd_mean": 0.4299318148218793,
+      "n_seed": 6
+    },
+    "C2": {
+      "cond": "C2",
+      "world": "lob",
+      "b_struct_iqr_mean": 0.31117871202661435,
+      "b_struct_iqr_ci": [
+        0.2759176222394107,
+        0.346439801813818
+      ],
+      "b_struct_iqr_pooled": 0.36215983160377857,
+      "b_struct_sd_mean": 0.3292626271909684,
+      "n_seed": 6
+    },
+    "C3": {
+      "cond": "C3",
+      "world": "lob",
+      "b_struct_iqr_mean": 0.28984150423527266,
+      "b_struct_iqr_ci": [
+        0.25124172306820963,
+        0.3284412854023357
+      ],
+      "b_struct_iqr_pooled": 0.2880749675094555,
+      "b_struct_sd_mean": 0.2934817859284395,
+      "n_seed": 6
+    }
+  },
+  "b_struct_agg": 0.362525513079178,
+  "b_struct_lob": 0.3005101081309435,
+  "ratio_lob_agg": 0.828935060538236,
+  "s71_completed_rt_ratio": 0.36,
+  "verdict": "α 寄り: 認知過程の structure function 指数が agg/LOB でほぼ同じ → 完了RT funnel の圧縮 (S7.1 の 0.13) は selection 由来の公算大",
+  "caveat": "無条件 structure function は position を参照しない (完全 de-selection)。位置依存の faithful 版 (全 open position の未実現 |Δφ|、凍結含む) は P(t)・凍結 entry が未永続化のため LOB=Mac 再走が要る (#4 継続)。",
+  "timestamp": "2026-06-12T12:03:47.203354"
+}
