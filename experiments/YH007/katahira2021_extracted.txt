@@ -1,0 +1,872 @@
+Version of Record: https://www.sciencedirect.com/science/article/pii/S0378437121005008
+Manuscript_89f521319cf0435124f12d50803d5f94
+
+ Self-organized Speculation Game for the spontaneous
+             emergence of financial stylized facts
+
+                      Kei Katahiraa,b,, Yu Chenc, Eizo Akiyamaa
+
+            aFaculty of Engineering, Information and Systems, University of Tsukuba,
+                       1-1-1 Tennodai, Tsukuba-shi, Ibaraki-ken 305-8573, Japan
+
+                   bResearch Fellow of Japan Society for the Promotion of Science
+                   cGraduate School of Frontier Sciences, The University of Tokyo,
+
+                     5-1-5 Kashiwanoha, Kashiwa-shi, Chiba-ken 277-8563, Japan
+
+Abstract
+
+We sophisticate the Speculation Game to relax the need of rigorous tuning of a
+part of parameters for the emergence of characteristic statistics of price returns.
+Named as Self-organized Speculation Game (SOSG), thanks to the concept of
+the Bak-Tang-Wiesenfeld (BTW) sandpile model, the model can spontaneously
+adjust the number of market participants during the process of reaching the
+quasi-critical state. While the original Speculation Game's high reproducibility
+of financial stylized facts is maintained, the behavioral characteristics of this
+modified model, such as the dynamics of system size and the observations of
+power-law phenomena, strongly resemble those of BTW model. The market
+size is evolutionally settled with fluctuations within a certain range, similar to
+the total sand grains behave in the sandpile model. SOSG infers the possibility
+that, in the real financial markets, it could be the self-organized quasi-criticality
+which works behind the spontaneous emergence of universal financial stylized
+facts.
+Keywords: Financial stylized facts, Self-organized criticality, Speculation
+Game, BTW sandpile model, Quasi-critical state
+
+    Corresponding author.
+     Email address: k.katahira@akiyama-lab.net (Kei Katahira)
+
+Preprint submitted to Journal of LATEX Templates  December 17, 2020
+
+© 2021 published by Elsevier. This manuscript is made available under the Elsevier user license
+https://www.elsevier.com/open-access/userlicense/1.0/
+    1. Introduction
+
+    1.1. Background
+
+         Time series of price returns in financial markets are known to have sev-
+    eral quantitative and qualitative statistical properties collectively called styl-
+5 ized facts. Cont reported 11 representative statistical properties [1] including
+    the well-known volatility clustering, which is characterized by the tendency for
+    the large scale price returns to cluster together [2, 3, 4]. Those features are
+    quite nontrivial because they can be observed universally in different markets
+    and instruments.
+10 In the studies of econophysics, several emerging mechanisms for volatility
+    clustering have been proposed based on bottom-up simulations employing sim-
+    ple agent-based models. The most popular, and maybe convincing one as well,
+    is the effect of herding behavior [5, 6], which refers to the intermittent synchro-
+    nization of actions among traders. For example, based on studies with the family
+15 of Minority Game [7] typed models, one may infer that either a combination
+    of inductive learning with dynamic capitals [8, 9] or a performance-dependent
+    switch between active and inactive strategies [3, 10], could trigger the herd-
+    ing behaviors among the players and result in large-scaled intermittent price
+    fluctuations. Another plausible mechanism is the order-book price formation.
+20 Typically, the Maslov model [11] suggests that the continuous double auction
+    system alone can cause the clustering of volatile price fluctuations. As the latest
+    study, we recently proposed alternative market scenarios with some empirical
+    evidence in the study of the Speculation Game [12]. Specifically, it is found that
+    heterogeneous holding periods in round-trip trades may agitate volatilities by
+25 broadly differentiated trading volumes caused by the diversification of capital
+    among traders [13].
+
+         Despite these progresses in revealing the potential mechanism for volatility
+    clustering, little is known about the spontaneous emergence of stylized facts in
+    the financial markets. Stylized facts can be commonly observed irrespective
+30 of the types of markets, the lengths of histories, the differences in regulations,
+
+                                                        2
+    and so on. For instance, similar statistics of price returns can be observed
+    either in the mature markets with histories of more than 100 years (such like
+    US markets) or in the emerging markets with at most 30 years of history (such
+    like Chinese or Indian markets). The inference of such a universal spontaneity
+35 is that the number of parameters of market models that need to be artificially
+    tuned should be very small. In other words, a certain kind of spontaneous
+    adjustment mechanism should work in the background. However, even the most
+    recent market models, including the Speculation Game, essentially require the
+    external fine-tuning of all control parameters for the reproduction of stylized
+40 facts.
+
+         In econophysics, one possible approach to addressing this problem is to con-
+    ceptually make the assumption that the market system must stay in a nearly
+    critical state [6, 14, 15, 16, 17, 18], which might be supported by two primary
+    aspects of stylized facts. First, the empirical (complementary) cumulative dis-
+45 tributions of positive and negative price returns display power-laws in the tail
+    part, with a finite exponents  (2 <  < 5) [2, 19, 20]. Second, the auto-
+    correlation of volatilities decays slowly with the time interval, which may be
+    fitted either by a power-law [1, 19] or by a logarithmic function [21]. In physics,
+    criticality is defined without ambiguity as the state of a system in which the
+50 frequency distribution of some event demonstrates a power-law tail. Simulta-
+    neously, spatial and/or temporal correlation functions should also decay with a
+    power law, indicating the existence of infinite correlation lengths [22]. On the
+    other hand, the decay of autocorrelation of volatilities in some markets or in-
+    struments follow the logarithmic function rather than the power law [23], hence
+55 it should be more appropriate to categorize the actual state of financial markets
+    as the quasi-critical state instead of a pure critical one.
+
+         Regarding the process approaching the critical or quasi-critical states, there
+    is a unique physical principle called self-organized criticality (SOC) that allows
+    self-adjustment of a parameter corresponding to the system condition1 [24, 25].
+
+         1A mechanism called sweeping of instability has also been proposed by Sornette et al.
+
+                                                        3
+60 In 1987, Bak, Tang, and Wiesenfeld (BTW) proposed the SOC concept elab-
+    orated with the famous sandpile model as a non-equilibrium system that can
+    reach the critical state under quite general conditions [26]. In a two-dimensional
+    BTW sandpile model, a sand grain falls on a randomly chosen site in an L × L
+    lattice which causes a unit increase of the slope of that site. If the local value
+
+65 of slope got larger than a threshold, a landslide would occur causing the in-
+    crease of slope in the neighbor sites. A chain of those landslides brings about
+    an avalanche, through which sand grains roll down to the edge and fall off the
+    lattice. Even such a set of simple rules can render the system critical, that
+    is, the emergence of a power-law relationship between the frequency and size
+
+70 of avalanches. Note that there are SOC systems which can only reach quasi-
+    critical states, such as the Olami-Feder-Christensen (OFC) earthquake model
+    [27]. Consequently, the behavior of such a system is categorized as the self-
+    organized quasi-criticality (SOqC) [28].
+         To the best of authors' knowledge, there are few agent-based financial mar-
+
+75 ket models equipped with the SOC setup. The Alfi-Pietronero-Zaccaria (APZ)
+    market model [29, 30, 31], in which financial stylized facts are explained as the
+    finite size effects, enables the autoregulation of the number of active agents with
+    thresholds of realized volatility for entering and exiting the markets. On the
+    other hand, the contagion financial pricing (CFP) model [32], in which the effect
+
+80 of an information cascade is involved, is indeed a sophisticated version of the
+    financial quakes model [17, 33], where traders' imitating behavior of pricing is
+    introduced by using the structure of the OFC earthquake model. Whereas basic
+    stylized facts can be recovered with these two models, a large number of pa-
+    rameter values need to be specified in both models, which prevents a persuasive
+
+85 explanation for the universal power law behaviors in financial markets.
+
+     [22] in which no parameter tuning is needed for the spontaneous emergence of power laws,
+     however, it does not include the adaptive adjustment of a parameter value.
+
+                                                        4
+    1.2. Purpose
+
+         In this study, a simple agent-based model equipped with the SOC principle
+    is developed for a straight exploration of the spontaneous emerging of financial
+    stylized facts. In particular, the "Self-organized Speculation Game" (SOSG) is
+90 constructed with a direct use of the structure of BTW sandpile model. The
+    model enables the spontaneous adjustment of market size without losing the
+    baseline Speculation Game model's high reproducibility of stylized facts. Fur-
+    thermore, the behavioral commonalities between the BTW sandpile model and
+    the SOSG shows the possibility that SOqC may work behind the spontaneity
+95 of emergence for financial stylized facts.
+
+         The remainder of this paper is organized as follows. Section 2 describes the
+    model, and Section 3 presents the results and discussion. Finally, Section 4
+    concludes.
+
+     2. Self-organized Speculation Game
+
+100  SOSG is a sophisticated model of Speculation Game, which is featured
+
+     through round-trip trading with variable volumes and mutual projections be-
+
+     tween realistic and cognitive worlds2. Incorporating the similar structure of
+
+     slowly adding element in the BTW sandpile model, it can naturally settle the
+
+     market size.
+
+105  The SOSG model starts with a vacant gamified market. At each time step
+
+     t, a new player i enters the market with her initial market wealth, wi(t) = 10B,
+     where B is a parameter called board lot amount which describes the ease in
+
+     placing orders with multiple quantities (see Eq.1). Thus, the analogy of SOSG
+
+     to the BTW sandpile model can be explained as follows: the gamified market
+
+110 corresponds to the lattice; and the new player entering the market corresponds
+
+     to the falling grain of sand.
+
+     2See Fig. 1 of [12] for a further understanding of the framework.
+
+                                    5
+    All the N (t) players in SOSG will choose an action ai(t) from three alterna-
+tives: buy (= 1), sell (= -1), or hold (idle) (= 0). When the player submits a
+buy or sell (short selling is allowed) order, the quantity of order qi(t) is decided
+with the flooring operator · · ·  as
+
+               qi(t)   =      wi(t)  .                   (1)
+                                B
+
+The opening and closing quantities are kept equal in the round-trip executed by
+every player. Also, when the player holds a long (short) position, the further
+buy (sell) actions are prohibited.
+
+    The market price change p is formed by applying the order imbalance
+equation as shown in the literature [6]
+
+p  =  p(t)  -  p(t  -  1)  =    1    N (t)               (2)
+                              N (t)
+                                          aj (t)qj (t).
+
+                                     j=1
+
+115 Recall that Eq.2 implies a sufficiently liquid market realized by the existence
+     of capable market-makers. The initial value of market price p(t) can be set
+     arbitrary, p(0) = 100 ( 1) is chosen in this study for convenience. Price
+     returns are calculated as: r(t) = ln p(t) - ln p(t - 1).
+         Each player refers to the quinary time series of history H(t), which is com-
+     posed of the quantized price movements h(t) that represent recent price changes
+     in a cartoonic way. Through a magnitude comparison between p and the cogni-
+     tive threshold C, the latter of which is a threshold value for players to recognize
+     a big price move, the quantized price movements are determined as follows:
+
+   
+
+   2 (largely up)             if p > C,
+   
+
+   
+
+   
+
+   1 (up)                     if C  p > 0,
+   
+
+   
+
+   
+
+h(t) = 0 (stay)               if p = 0,                  (3)
+
+                              if - C  p < 0,
+                              if p < -C.
+   
+   -1 (down)
+   
+   
+   
+   
+   -2 (largely down)
+
+     In this way, the history H(t) contains not only information on the direction,
+120 but also information on the coarse magnitude of past price movements, which
+
+                           6
+     accordingly requires the evaluation of trade performance in the cognitive world
+     (see Eqs.4 and 5).
+
+         As each player has a finite memory, she can only read the last M digits
+     of H(t). Based on this M size historical pattern, the player will look up for
+125 a recommended action ai(t) in her unique strategy table, see Table 1 as an
+     example. Note that if the recommendation has no difference with the action
+     taken at the opening of order, the player will hold the opened position until the
+     accomplishment of a round-trip trade. Such a setting will realize the variable
+     holding and idling periods for each player in SOSG.
+
+Table 1: Example of a strategy for M = 3.
+
+History H(t)   Recommended action ai(t)
+-2 -2 -2                       1
+-2 -2 -1                       0
+-2 -2 0                        0
+-2 -2 1
+-2 -2 2                      -1
+-2 -1 -2                       1
+                               0
+          ...                   ...
+  222
+                             -1
+
+    In the cognitive world of each player, there exists a cognitive price P (t)
+besides the p(t) in the actual world, which is defined as follows:
+
+P (t) = P (t - 1) + h(t).                  (4)
+
+130 The performance of a round-trip trade is evaluated by the player based on the
+     difference in P (t)s at the opening and closing of positions (see Eq.5).
+         When a round-trip trade is closed with the reverse order, the cognitive gain
+     i(t) is firstly computed in players' cognitive world, mimicking how humans
+     handle numerical information in a heuristic manner (e.g., the precision effect
+
+               7
+and the ease of computation effect mentioned in Thomas and Morwitz's study
+[34]). When player i opens a position at t0 and closes it at t, her cognitive gain
+per unit quantity of order can be found as
+
+                                        t
+
+i(t) = ai(t0)(P (t) - P (t0)) = ai(t0)           h(k).  (5)
+
+                                        k=t0 +1
+
+After the evaluation, the player will update her market wealth in the realistic
+world, through the investment adjustment wi(t) determined by the conversion
+of i(t) with the consideration of her trading volume qi(t):
+
+wi(t) = wi(t0) + wi(t) = wi(t0) + f (i(t)qi(t0)).       (6)
+
+     where f can be an arbitrary monotonically increasing function. For simplicity,
+     wi(t) = i(t)qi(t0) is used in the SOSG. Note that this wi(t) would be
+     different from the gain or loss calculated directly based on the market price,
+135 though the difference is assumed to be adjusted externally; in other words, self-
+     finance is not postulated in the SOSG. Lastly, if the wealth of a player decreases
+     to the level wi(t) < B, making her impossible to order even one unit of quantity,
+     the player will be forced to leave the market. Hence, B also works as a significant
+     threshold value to induce irregular withdrawals of players, which is analogous
+140 with the fact that the threshold dynamics play an important role in the BTW
+     sandpile model.
+
+         To emphasize, the major difference in the structure of SOSG from that of
+     the standard Speculation Game is the reduction of two main control parameters:
+     the number of players N and the number of players' strategies S. Instead of
+145 the fixed population size with substitutions for bankruptcies in the Speculation
+     Game, N in the SOSG can change and eventually be settled through a constant
+     inflow of a player to a gamified market and irregular outflows of bankrupted
+     players from it. Additionally, the value of S is set as one, considering the
+     finding in our previous study [13] that inductive learning is not indispensable to
+150 the reproduction of stylized facts with strategy tables in the Speculation Game.
+
+8
+     3. Results and discussions
+
+     3.1. Market size self-adjustment
+         First, we summarize that the market size can be spontaneously adjusted in
+
+     SOSG along with the reproduction of volatility clustering in the price returns.
+155 Figs.1 and 2 display the time series of the number of players participating in
+
+     the gamified market and the corresponding price returns r(t), respectively. The
+     three main parameters of the SOSG are set as M = 5, B = 9, and C =
+     3 by following the baseline setting of the Speculation Game in [12] and [13].
+     Henceforth, the memory size and the cognitive threshold are fixed as M = 5
+160 and C = 3. In Fig.1, the number of players surges in the beginning of the
+     simulation and subsequently fluctuates around approximately 700 players. In
+     the meantime, Fig.2 shows that the magnitudes of r(t) fluctuate intermittently,
+     indicating the stable emergence of volatility clustering.
+
+         Note that the SOSG is equivalent to the original Speculation Game [12] re-
+165 garding the reproducibility of stylized facts (10 out of 11 stylized facts in Cont's
+
+     report [1] are confirmed except for the gain/loss asymmetry [35]). Additionally,
+     the emerging mechanism of volatility clustering and the effects of the parameters
+     in SOSG are identical to those elucidated in [13] as well. Furthermore, similar to
+     the Perturbated Speculation Game [36], the introduction of perturbation to the
+170 SOSG price change, which represents the effects of non-pure speculators, can
+     generate price trends so that the correct Hurst exponent can be obtained and
+     thus the long term scaling of fluctuation is ensured. Therefore, by maintaining
+     the basic features of the Speculation Game, the relaxation in the requirement of
+     a predetermined market size suggests that SOSG can be considered a smarter
+175 model that abstracts more essential elements of the financial market.
+
+                                                        9
+        Figure 1: Dynamic number of players in the gamified market.
+
+Figure 2: Intermittent time series of price returns corresponding to Fig.1.
+
+                                       10
+     3.2. Commonalities with the BTW sandpile model
+     3.2.1. Spontaneous settlement of system size
+
+         In the following sections, we show that the behavior of the BTW sandpile
+     model and SOSG are quite similar. First, both models have the characteristic
+180 that the final system size, to which the required time length for adjustment is
+     proportional, is highly determined by a single control parameter. In the BTW
+     sandpile model, the number of sand grains that remain on the lattice depends
+     on the length of its side L as indicated in Fig.3. Lager L does not only increase
+     the number of retained sand grains but also lengthens necessary time steps to
+185 reach stable states. Similarly in the SOSG, the number of players staying in
+     the gamified market strongly hinges on the value of the board lot amount B.
+     A larger B, implying more difficult market conditions for players to place large
+     orders, results in a larger market size and a longer time for the convergence, as
+     indicated in Fig.4. However, the fluctuations in leaving players in SOSG during
+190 the stable state are a bit larger than those in the outflowing sand grains in a
+     BTW sandpile model.
+
+      Figure 3: Time series of number of sand grains remaining on the lattice with different L in
+      BTW sandpile model.
+
+                                                        11
+      Figure 4: Time series of number of players participating in the gamified market with different
+      B in SOSG.
+
+     3.2.2. Power laws and quasi-criticality
+         Moreover, similar to the relationship between the frequency and size of sand
+
+     avalanches in the BTW sandpile model, power-law distributions of several sta-
+195 tistical quantities can be observed in SOSG.
+
+         One such distribution is that of the heavy tails of price returns, one of the
+     fundamental stylized facts previously explained. The blue line in Fig.5 shows a
+     good agreement to the power law for the complementary cumulative distribu-
+     tion of positive market returns generated from 20-trial in SOSG simulations of
+200 50,000-time steps. Its power-law feature is examined using the Python package
+     [37], with which one can implement the robust statistical analysis advocated
+     by Clauset, Shalizi, and Newman [38]. The red dashed line of the estimated
+     power-law function with a tail index of  = 4.56, satisfying the range condi-
+     tion of empirical exponents: 2 <  < 5, visually fits the blue data line better
+205 than the green dashed line of the estimated exponential function. Further,
+     Vuong's test [39] also concluded that the power-law distribution is closer to
+     the genuine one because the likelihood ratio LR is 3.54(> 0) and the p-value
+     is 4.05 × 10-4(< 0.1). Note that the cumulative distribution of negative mar-
+
+                                                        12
+ket returns and those in the cases of different B values also exhibit the same
+power-law tails.
+
+                         100
+
+Cumulative distribution  10-1
+
+                         10-2
+
+                         10-3
+
+                         10-4
+
+                         10-5  Fitted power-law function
+
+                               Fitted exponential function
+
+                               6 × 100      101             2 × 101
+                                        Normalized r(t)
+
+      Figure 5: Complementary cumulative distribution of positive market returns (500,195 data
+      points generated by 20 simulation runs) when B = 9.
+
+210
+
+         Another power-law statistics is the cumulative distribution of w/B, the
+     investment adjustment per unit board lot amount that relates to a player's
+     earns through a round-trip trade or, more simply, the capital change in terms
+     of the order quantity (see Eq.1). This statistical quantity can be explained as
+215 the amount of market wealth exchanged among the players, which intuitively
+     corresponds to the number of sand grains involved in an avalanche cascading in
+     the BTW sandpile model. Nonetheless, as the direct relationship of "a player = a
+     sand grain" exists; such an intuitive analogy is not fully supported. The circular
+     points drawn in Fig.6 with the use of R version of the power-law package [40]
+220 show the complementary cumulative distribution of positive w/B obtained
+     from the round-trip trades done by all players in a single simulation of 50,000-
+     time steps. The statistical analyses of Clauset et al. [38] gives a better fitted
+     power-law function (shown as the red solid line in the figure) with a tail index
+      = 3.38 than the exponential one (shown as the green dashed line in the
+225 figure). Because the likelihood ratio and the p-value of Vuong's test [39] are
+     LR = 7.18(> 0) and p = 7.05 × 10-13(< 0.1), respectively, a closer fitting of the
+
+                                                        13
+                              100           Fitted power-law function
+                                            Fitted exponential function
+
+     Cumulative distribution  10-2
+
+                              10-4
+
+                              10-6
+
+                                    12  5 10 20 50 100 200 500
+                                                   floor(W/B)
+
+     Figure 6: Complementary cumulative distribution of w/B(> 0) (860,995 data points from
+     a single simulation) when B = 9.
+
+     power-law function is quantitatively ensured as well. Such a power-law tail is
+
+     also held for the cumulative distribution of negative w/B and for different
+
+     B, similar to the distributions of price returns explained in the previous section.
+
+230  Whereas SOSG can also reproduce a long time tail in the autocorrelation of
+
+     volatilities, the decay of autocorrelation does not follow the power-law function.
+
+     Indeed, the decay can be better regressed to a logarithmic function, which is
+
+     similar to the simulation results of the standard Speculation Game [12, 13]. Fig.7
+
+     displays three cases of the autocorrelation v( ) of volatilities |r(t)|, where v( )
+235 is calculated using the market price returns for 50,000-time steps and averaged
+
+     over 100 trials, for B = 9, 18, and 27. The absence of the power-law property
+
+     indicates that the infinite correlation over time is not established in SOSG.
+
+     Therefore, we reached the conclusion that eventually the SOSG system settles
+
+     in a near quasi-critical rather than a purely critical state. This justifies what
+
+240 we mentioned in the introduction section that, the SOSG is a toy model for the
+
+     financial markets, equipped with the SOqC mechanism.
+
+                                        14
+                Figure 7: Slow decays of autocorrelation in volatility with various B in SOSG.
+
+     3.3. Reasons for spontaneous market-size settlement
+         The spontaneous settlement of system size under SOC in the BTW sand-
+
+     pile model has been explained with a general concept called the absorbing
+245 phase transition, which is presented in the theory of phase transition for non-
+
+     equilibrium systems [41]. The absorbing phase transition is defined as a system-
+     atic changeover from the active phase, during which the reaction never stops
+     and continuously changes the structure, to the absorbing state, namely, a state
+     in which the system is trapped forever with a monotonous structure once it is
+250 reached. Because the separation of timescales in the BTW sandpile model al-
+     lows the unlimited dissipation of sand grains, the particle density on the lattice
+     is ensured to recover its critical value for which the absorbing phase transition
+     occurs even though the slow addition of a grain will drive the system back to the
+     active phase. With such a mechanism leading the system to the critical point
+255 acts as an attractor for the system dynamics, which can stabilize the number of
+     sand grains remaining on the lattice.
+
+         Intuitively, the size settlement in SOSG should also have some relationship
+     with the absorbing phase transition. However, the direct explanation shown
+     above is not applicable to SOSG, because the "lattice" size of the gamified
+
+                                                        15
+260 market that serves as a physical space for the residence of SOSG players is
+
+not fixed. In contrast, the lattice that similarly functions as a receiver of sand
+
+grains in the BTW sandpile model is invariant. Furthermore, if the exchange
+
+or redistribution of wealth among the SOSG player could be loosely defined as
+
+a kind of local "dissipation", surely the rate of such a dissipation would not
+
+265 be unlimited due to the lack of catenated responses. Hence, we can observe a
+
+larger fluctuations in the time evolution of that number of players than that of
+
+sand grains.
+
+Here, we explicate the reason, from a different aspect, for why SOSG can keep
+
+the market size to a certain fixed level and drive the system near to criticality
+
+in an averaged sense. In particular, we show the balance of the time-averaged
+
+inflow and outflow by taking the net statistics of both cumulative elements
+
+in the stable state. In the case of the BTW sandpile model, the difference
+
+between the total amounts of sand grains flowing into and out of the lattice
+
+intensively fluctuates around zero, shown as the blue line in Fig.8. This implies
+
+the cumulation of the runoff through the avalanches grows almost identically as
+
+to the total deposit of sand grain, which is the accumulation of the falling sand
+
+particle at each time step. Therefore, the two flows averaged in time almost
+
+match each other as
+
+Nnet  =       1      Nin - Nout  0  Nin  Nout ( 1), (7)
+              t
+                 t   t
+
+where Nnet, Nin, and Nout are the numbers of net flows, inflows, and outflows
+
+of sand grains at each time step t, respectively. The balance of the averaged
+
+270 inflow and outflow indicated by such simple statistics assures the convergence
+
+of the amount of remaining sand on the lattice in the BTW sandpile model.
+
+A similar balancing phenomenon occurs in the SOSG system. The red line
+
+in Fig.8 shows the time series of the difference between the total number of
+
+entering and exiting players in the gamified market. Although it vibrates larger
+
+275 than the blue line does, which reflects the nontrivial fluctuation in the number
+
+of outflowing players as Figs.1 and 4 suggest, its mean-reverting feature to zero
+
+can be observed. This connotates that the accumulation of withdrawn players
+
+                        16
+      Figure 8: Net cumulative numbers of inflowed and outflowed sand grains on the lattice of
+      BTW sandpile model (L = 20) and entering and exiting players in the gamified market of
+      SOSG (B = 9) in the stable state. The transition periods are considered as 1,000-time steps
+      and 2,000-time steps, respectively.
+
+     inflates almost equivalently to the total population of players entering at each
+     time step. Accordingly, similar to the case of the BTW sandpile model, Eq.7 can
+280 be established in the SOSG system as well, designating that the time-averaged
+     number of players entering and exiting are balanced with each other.
+
+         Moreover, the dynamic equilibrium regarding the number of players re-
+     mained in the gamified market is a superficial feature, the essence indeed lies
+     in the flow of market wealth. Three curves depicted in Fig.9 demonstrate the
+285 cumulative changes in market wealth caused by the inflow of wealth through a
+     single route and the outflow of wealth through two different routes. In SOSG
+     model setting, the entering players bring 10B wealth into the gamified market
+     at each time step, and naturally its total amount increases monotonically as a
+     linear function of time (shown as the blue line in Fig.9). The inflowed market
+290 wealth is redistributed among the players through round-trip trades. In the re-
+     distribution process, most of the market wealth will be deprived by the market
+     makers, whose existence is required by applying the excess demand to the cal-
+     culation of the price change (in Eq.2). The acquired wealth of the market maker
+
+                                                        17
+     (shown as the red line in Fig.9) can be calculated by executing holding positions
+295 in chronological order. Because the SOSG players utilize an extended strategy
+
+     table of the Minority Game type, the players have little chance to continuously
+     win trades in the long term, a feature that is similar to previous Minority Game
+     [7] and the $-game [42]. Eventually, the market maker will win alone, albeit
+     with some nontrivial loss, indicated by occasional dips. As the second route of
+300 outflow, some market wealth is also brought out of the gamified market by the
+     bankrupted players. The cumulative amount of this outflow grows slowly and
+     linearly as well (shown as the green line). Finally, the sum of these two cumu-
+     lative outflows equals the accumulated market wealth flowed into the market.
+
+      Figure 9: Cumulative amounts of inflowed and outflowed market wealth w in the gamified
+      market of SOSG. The wealth that flowed into the market (the blue line) was brought by
+      entering players partially flow away from the market by the leaving players (the green line),
+      and most of it flows into the market maker (the red line).
+
+         Hence, in the time averaging sense, a dynamic equilibrium state can be
+     established in the SOSG system through the balance between the total inflow
+
+                                                        18
+and outflow of market wealth
+
+   win  wmaker + wexit  wout
+
+t  t                                    t        t  (8)
+
+ win  wmaker + wexit  wout ( 10B),
+
+where win, wmaker , wexit, and wout are the wealth amounts of the inflow, the
+outflow to the market maker, the outflow with exiting players, and the total
+outflow at each time step, respectively. Moreover, the relationship between the
+red and the green lines in Fig.9 implies
+
+                              wexit  =    1   ,     (9)
+                              wout      O(1)
+
+305 which means that, in the time average sense, if each time a bankrupted player left
+     the market with market wealth wexit , the total outflow wout = O(1) wexit
+     would balance with the inflow of win brought by a player newly entering the
+     market. Consequently, an equation similar to Eq.7 can also be established,
+     showing the balance in the averaged number of entering and exiting players.
+
+310 4. Conclusion
+
+         In this paper, the SOC mechanism is incorporated into the Speculation Game
+     for the realization of spontaneous adjustments of the market size in the process
+     of generating stylized financial properties. Compared with the original model,
+     the established SOSG succeeds in reducing the number of main parameters from
+315 five (N , S, M , B, C) to three (M , B, C) and maintains the high reproducibil-
+     ity of 10 stylized facts. In this sense, the SOSG model can be regarded as an
+     essential type of Speculation Game. Moreover, our study reveals that SOSG
+     shares several common phenomenological characteristics with the BTW sand-
+     pile model: the spontaneous settlement of system size, distributions following
+320 the power laws, and the balance (in the time-averaging sense) between system
+     inflows and outflows. On the other hand, the SOSG system can reach merely a
+     subcritical state in reference with the non power-law decay of the autocorrela-
+     tion in volatilities. Additionally, the stabilizing mechanism of system size in the
+
+                                                        19
+     SOSG is slightly more complex because the averaged number of inflowing and
+325 outflowing players in the gamified market is essentially related to the averaged
+
+     amount of inflowing and outflowing market wealth behind.
+         Results of our study suggest the potential existence of SOqC in the actual
+
+     financial markets as well as its possible contribution to the spontaneous emer-
+     gence of stylized facts. The two essential premises here are that the financial
+330 markets are open systems and that capital flows through the entrance and the
+     exit of market participants. It is also notable that SOSG does not require the
+     spacial structure, or local interaction, for the emergence of SOqC, which is sig-
+     nificantly different from the settings of the BTW sandpile model.
+
+     Acknowledgments
+
+335  This work was supported by JSPS KAKENHI grant number JP17J09156
+
+     and JP20J00107.
+
+     References
+
+     [1] R. Cont, Empirical properties of asset returns: stylized facts and statistical
+         issues, QUANTITATIVE FINANCE 1 (2001) 223­236.
+
+340 [2] P. Gopikrishnan, V. Plerou, Y. Liu, L. N. Amaral, X. Gabaix, H. E. Stan-
+           ley, Scaling and correlation in financial time series, Physica A: Statistical
+           Mechanics and its Applications 287 (3) (2000) 362­373.
+
+     [3] D. Challet, M. Marsili, Y.-C. Zhang, Stylized facts of financial markets and
+
+     market crashes in minority games, Physica A: Statistical Mechanics and its
+
+345  Applications 294 (3) (2001) 514­524.
+
+     [4] T. H. Rydberg, Realistic statistical modelling of financial data, Interna-
+         tional Statistical Review 68 (3) (2000) 233­258.
+
+     [5] R. Manuca, Y. Li, R. Riolo, R. Savit, The structure of adaptive competition
+
+     in minority games, Physica A: Statistical Mechanics and its Applications
+
+350  282 (3) (2000) 559­608.
+
+                              20
+     [6] R. Cont, J.-P. Bouchaud, Herd behavior and aggregate fluctuations in fi-
+         nancial markets, Macroeconomic dynamics 4 (02) (2000) 170­196.
+
+     [7] D. Challet, Y.-C. Zhang, Emergence of cooperation and organization in an
+
+     evolutionary game, Physica A: Statistical Mechanics and its Applications
+
+355  246 (3) (1997) 407­418.
+
+     [8] D. Challet, A. Chessa, M. Marsili, Y. Zhang, From minority games to real
+         markets, QUANTITATIVE FINANCE 1 (2001) 168­176.
+
+     [9] T. Galla, Y.-C. Zhang, Minority games, evolving capitals and replicator dy-
+
+     namics, Journal of Statistical Mechanics: Theory and Experiment 2009 (11)
+
+360  (2009) P11012.
+
+     [10] J.-P. Bouchaud, I. Giardina, M. M´ezard, On a universal mechanism for
+           long-range volatility correlations, Quantitative Finance 1 (2) (2001) 212­
+           216.
+
+     [11] S. Maslov, Simple model of a limit order-driven market, Physica A: Statis-
+
+365  tical Mechanics and its Applications 278 (3-4) (2000) 571­578.
+
+     [12] K. Katahira, Y. Chen, G. Hashimoto, H. Okuda, Development of an agent-
+           based speculation game for higher reproducibility of financial stylized facts,
+           Physica A: Statistical Mechanics and its Applications 524 (2019) 503 ­ 518.
+
+     [13] K. Katahira, Y. Chen, Heterogeneous round-trip trading and the emergence
+
+370  of volatility clustering in speculation game (2020) [accepted in Journal of
+
+     Systems Science and Complexity].
+
+     [14] B. B. Mandelbrot, The fractal geometry of nature, Vol. 1, WH freeman
+           New York, 1982.
+
+     [15] T. Lux, M. Marchesi, Scaling and criticality in a stochastic multi-agent
+
+375  model of a financial market, Nature 397 (6719) (1999) 498.
+
+     [16] D. Challet, M. Marsili, Y. Zhang, Minority Games, Oxford finance, Oxford
+           University Press, 2005.
+
+                              21
+     [17] A. E. Biondo, A. Pluchino, A. Rapisarda, D. Helbing, Reducing financial
+           avalanches by random investments, Physical Review E 88 (6) (2013) 062814.
+
+380 [18] V. Alfi, M. Cristelli, L. Pietronero, A. Zaccaria, Mechanisms of self-
+           organization and finite size effects in a minimal agent based model, Journal
+           of Statistical Mechanics: Theory and Experiment 2009 (03) (2009) P03016.
+
+     [19] R. N. Mantegna, H. E. Stanley, Introduction to econophysics: correlations
+           and complexity in finance, Cambridge university press, 1999.
+
+385 [20] P. Gopikrishnan, M. Meyer, L. N. Amaral, H. E. Stanley, Inverse cubic
+           law for the distribution of stock price variations, The European Physical
+           Journal B-Condensed Matter and Complex Systems 3 (2) (1998) 139­140.
+
+     [21] G. Zumbach, The riskmetrics 2006 methodology, RiskMetrics Group
+           (2007), Available at SSRN 1420185.
+
+390 [22] D. Sornette, Sweeping of an instability: an alternative to self-organized
+           criticality to get powerlaws without parameter tuning, Journal de Physique
+           I 4 (2) (1994) 209­221.
+
+     [23] G. Zumbach, Characterizing heteroscedasticity, in: Discrete Time Series,
+           Processes, and Applications in Finance, Springer, 2013, pp. 181­196.
+
+395 [24] P. Bak, C. Tang, K. Wiesenfeld, Self-organized criticality, Physical review
+           A 38 (1) (1988) 364.
+
+     [25] P. Bak, How nature works: the science of self-organized criticality, Springer
+           Science & Business Media, 2013.
+
+     [26] P. Bak, C. Tang, K. Wiesenfeld, Self-organized criticality: An explanation
+
+400  of the 1/f noise, Physical review letters 59 (4) (1987) 381.
+
+     [27] Z. Olami, H. J. S. Feder, K. Christensen, Self-organized criticality in a con-
+           tinuous, nonconservative cellular automaton modeling earthquakes, Physi-
+           cal Review Letters 68 (8) (1992) 1244.
+
+     22
+     [28] J. A. Bonachela, M. A. Munoz, Self-organization without conservation:
+
+405  true or just apparent scale-invariance?, Journal of Statistical Mechanics:
+
+     Theory and Experiment 2009 (09) (2009) P09009.
+
+     [29] V. Alfi, L. Pietronero, A. Zaccaria, Self-organization for the stylized facts
+           and finite-size effects in a financial-market model, EPL (Europhysics Let-
+           ters) 86 (5) (2009) 58003.
+
+410 [30] V. Alfi, M. Cristelli, L. Pietronero, A. Zaccaria, Minimal agent based model
+           for financial markets I, The European Physical Journal B 67 (3) (2009)
+           385­397.
+
+     [31] V. Alfi, M. Cristelli, L. Pietronero, A. Zaccaria, Minimal agent based model
+
+     for financial markets II, The European Physical Journal B 67 (3) (2009)
+
+415  399­417.
+
+     [32] A. E. Biondo, A. Pluchino, A. Rapisarda, Modeling financial markets by
+           self-organized criticality, Physical Review E 92 (4) (2015) 042814.
+
+     [33] A. E. Biondo, A. Pluchino, A. Rapisarda, Micro and macro benefits of
+
+     random investments in financial markets, Contemporary Physics 55 (4)
+
+420  (2014) 318­334.
+
+     [34] M. Thomas, V. Morwitz, Heuristics in numerical cognition: Implications
+           for pricing, Handbook of pricing research in marketing (2009) 132­149.
+
+     [35] R. Donangelo, M. H. Jensen, I. Simonsen, K. Sneppen, Synchronization
+
+     model for stock market asymmetry, Journal of Statistical Mechanics: The-
+
+425  ory and Experiment 2006 (11) (2006) L11001.
+
+     [36] K. Katahira, Y. Chen, An extended Speculation Game for the recovery
+           of Hurst exponent of financial time series, New Mathematics and Natural
+           Computation 16 (02) (2020) 319­325.
+
+     [37] J. Alstott, E. Bullmore, D. Plenz, powerlaw: a Python package for analysis
+
+430  of heavy-tailed distributions, PloS one 9 (1) (2014) e85777.
+
+                      23
+     [38] A. Clauset, C. R. Shalizi, M. E. Newman, Power-law distributions in em-
+           pirical data, SIAM review 51 (4) (2009) 661­703.
+
+     [39] Q. H. Vuong, Likelihood ratio tests for model selection and non-nested
+
+     hypotheses, Econometrica: Journal of the Econometric Society (1989) 307­
+
+435  333.
+
+     [40] C. S. Gillespie, Fitting heavy tailed distributions: The poweRlaw package,
+           Journal of Statistical Software 64 (2) (2015) 1­16.
+           URL http://www.jstatsoft.org/v64/i02/
+
+     [41] D. Markovi´c, C. Gros, Power laws and self-organized criticality in theory
+
+440  and nature, Physics Reports 536 (2) (2014) 41­74.
+
+     [42] J. V. Andersen, D. Sornette, The $-game, The European Physical Journal
+           B-Condensed Matter and Complex Systems 31 (1) (2003) 141­145.
+
+           24
+
