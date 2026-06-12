@@ -1,89 +1,111 @@
-# Note: ΔG=0 除外による RT 解釈の変化 (S7 後の整理)
+# Note: ΔG=0 除外 → RT 解釈 → funnel 指数の再測定 (S7.1)
 
 作成: 2026-06-12、契機: Yuito 指摘「delta(G) を除くことで RT の解釈が変わっている可能性」
+実測: `code/s71_phi_vs_dW_funnel.py`、`logs/S71_summary_for_diff.json`、
+`outputs/figures/fig_S71_phi_vs_dW_funnel.png`、`outputs/tables/tab_S71_per_seed_{full,matched}.csv`
 
-S7 で canonical metric を `M_bin_var_floor` (旧) から `M_iqr` (新) に切り替えた。`M_iqr` 自体は zero を除外しないが、診断指標として `M_bin_var_nz` も併用しており、また「zero-P&L 組成 artifact だった」という結論は zero RT の扱いの違いに依存している。**結論を「funnel 機構は無傷」と書く前に、何を "RT" として測っているかを明示する必要がある**。
-
----
-
-## 1. S7 で起きた指標シフトの再整理
-
-| 指標 | 定義 | zero-ΔG RT の扱い | 何を測るか |
-|---|---|---|---|
-| `M_bin_var_floor` (旧) | Spearman(log h, Var(log max(\|ΔG\|, 1e-9))) | log floor で −20.7 に固定 | **zero RT の比率変化** に支配される (実質 artifact) |
-| `M_bin_var_nz` (診断) | Spearman(log h, Var(log \|ΔG\| \| \|ΔG\|>0)) | **完全除外** | nonzero RT 集団内の対数広がり |
-| `M_iqr` (canonical) | Spearman(log h, IQR(ΔG)) | 含むが median が 0 付近のため影響限定的 | 集団全体の中央 50% 幅 |
-| `M_sd` (代替) | Spearman(log h, SD(ΔG)) | 含む、外れ値感度高 | 集団全体の分散 |
-
-`frac_zero_slope` (= Spearman(log h, 各 bin の zero 比率)) は **全条件で負** (C0u −0.40, C0p −0.43, C2 −0.20, C3 −0.14)。**短 horizon ほど zero-ΔG が多く、長 horizon ほど少ない**。これは SG の認知利益 φ_i = Σ_{k=t0+1..t} h(k) の構造から自然な帰結 (短 h ほど Σh=0 になりやすい)。
-
-## 2. 「RT の解釈」が変わる 3 つの軸
-
-### (a) 母集団選択バイアス (`M_bin_var_nz` 系)
-zero RT を除外すると、**短 horizon の RT を不均等に多く除外**する (frac_zero_slope の符号より)。
-
-- 旧解釈 (all RT): 「全 RT について、長期 RT ほど損益分散が広い」
-- 新解釈 (nonzero RT): 「**cognitive 利益が 0 でなかった RT に限れば**、長期 RT ほど対数分散が広い」
-
-これは別の母集団を見ている。前者には wash trades (cognitive 利益 0 で閉じた取引) が含まれる、後者は除外。論文化時に「*conditional on nonzero ΔG*」と注記しないと over-claim になる。
-
-### (b) IQR は zero を含むが「ロバスト」とは別の話 (`M_iqr` の解釈)
-`M_iqr` は zero を除外しないので母集団選択バイアスは生じないが、別の問題がある:
-
-- ΔG 分布の中央 50% は **ΔG = 0 を中心とする狭い帯** に集中している (cognitive 利益が正負対称、zero mass が大きい)
-- 短 horizon では zero mass が大きく IQR ≈ 0
-- 長 horizon では zero mass が縮小し IQR が広がる
-- → `M_iqr > 0` は「**広がり**」というより「**zero mass の薄まり**」を測っている可能性
-
-**検証提案**: `M_iqr` を nonzero RT に conditioning して計算し、Spearman を再評価。
-- 仮に nonzero conditioning で M_iqr が ≈ 0 になるなら、`M_iqr > 0` の主因は zero mass dilution であって funnel ではない
-- 仮に同等の正値が残るなら、`M_iqr` は genuine spread を捉えている
-- これを S7 補遺として 1 run 追加するのが最小コストの追加検証
-
-### (c) Freeze と "ΔG=0 RT" の関係 (LOB 固有の交絡)
-LOB では完了 RT が ~10-30% (censoring 70-90%)。完了 RT のうち zero-ΔG な物は:
-
-- **tick boundary effect**: open tick と close tick が同一だと p の cognitive 量子化 h で Σh=0 になりやすい (とくに c_ticks ≈ 3·median|Δmid| の coarse granularity 下で)
-- **fill timing**: LOB の MARKET fill が遅延し、cognitive 上は同 step 内で open + close が落ちて Σh=0 になる経路
-
-LOB の "freeze" は (i) censoring (= not closed) と (ii) zero-ΔG close (= closed but cognitively flat) の **両方を含む量** として再定義できる可能性がある。S7 ① dose-response で `ρ(ov, censored) = +0.07` (流動性 8 倍で censoring 不動) を見たが、`ρ(ov, frac_zero_dG)` は測っていない。**この測定が freeze の "二層構造" を分解する**。
-
-## 3. 報告言い換えの推奨 (proposal/dossier 向け)
-
-S7 diff の現行 wording: 「funnel 機構は per-RT で無傷 (α)」
-推奨 wording: 「**(i)** RT が cognitive 利益 0 でない場合に限れば funnel 機構は per-RT で無傷 (α); **(ii)** zero-ΔG RT は短 horizon に偏在し、freeze の二次的指標として別途記述する」
-
-具体的な書き換え箇所:
-- `stage_S7_diff.md` §② 「α/β probe — 結果は明確に α」→ 「α-like (nonzero RT subpopulation で per-RT 機構同形、母集団全体での解釈は §3.1 注記参照)」
-- `stage_S7_diff.md` 統合 (b) 中心主張 §2 「funnel 機構は per-RT で無傷 (α、S7)」→ 「nonzero-ΔG RT に限れば funnel 機構は per-RT で無傷 (α-like、S7); zero-ΔG RT の組成変化は freeze の二次指標」
-
-「壊すべき機構の変質が存在しなかった」(統合 §3 の主張) は依然として妥当だが、**「壊すべき」の対象が all RT ではなく nonzero RT の funnel** に絞られる点を補足する。
-
-## 4. 追加検証の最小セット (S7.1 候補、優先度判断は Yuito)
-
-| ID | 内容 | コスト | 期待される弁別 |
-|---|---|---|---|
-| V1 | `M_iqr` を nonzero conditioning で再計算 (4 条件、既存 parquet で済む) | < 30 min | (b) 軸の決着、zero mass dilution か genuine spread か |
-| V2 | dose-response で `ρ(ov, frac_zero_dG)` を追加測定 (既存 6 seed × 4 ov 流用) | < 30 min | (c) 軸の決着、freeze の二層構造 |
-| V3 | 短 horizon (h ≤ 5) の RT に絞って `M_iqr` 再計算 | < 30 min | zero mass の影響が最大の領域での挙動 |
-| V4 | matched-horizon の IQR を nonzero conditioning で再計算 (§② 表) | < 30 min | α verdict が母集団選択に依存していないか |
-
-V1-V4 はいずれも既存 data ロードで完結、新規 sim 不要。**S7.1 として束ねて 1 セッションで実施可能**。
-
-## 5. 「funnel 機構そのもの」の最低限定義 (もし論文化するなら必要)
-
-S7 までの議論では「funnel」を以下のいずれの意味でも使ってきた:
-- (D1) Spearman(\|ΔG\|, h) — Pearson の単調変換、母集団全 RT
-- (D2) per-bin spread (IQR/Var) の log h 単調性、母集団全 RT
-- (D3) per-bin spread の log h 単調性、母集団 = nonzero RT のみ
-- (D4) matched-horizon での IQR profile の同一性 (α verdict)
-
-論文化時には**いずれか 1 つを primary 定義に固定**し、他は付録扱い。元 論文1 Fig.7 の "funnel" は (D1)/(D2) に対応し、本研究もそれに合わせるなら canonical は `M_iqr` で正しい (D2)。ただし「zero mass dilution との分離」(§2(b)) は方法論上の責務として明記する。
+**結論 (先出し)**: Yuito の懸念は妥当で、追跡したら **S7 の結論を 1 つ覆した**。
+当初の私の仮説 2 つ (「zero と spread は同じ拡散の裏表」「F1 は q-blind な φ で測ったから null」) は
+**両方ともデータに棄却された**。代わりに、funnel を Spearman でなく **実 log-log 指数 b** で
+測ると、matched horizon で **LOB funnel は agg の約 3 倍フラット** であることが判明。
+S7 の「機構は per-RT で無傷 (α)」は magnitude を Spearman が飽和させて隠していた over-claim。
 
 ---
 
-## まとめ
+## 0. 実測サマリ (4 条件、matched support h≤32、共通 bin、pooled / per-seed mean)
 
-Yuito の懸念は妥当。S7 で確定した「funnel 機構は無傷」結論は **nonzero-ΔG RT 集団についての主張に絞り込んで再述すべき**。zero-ΔG RT は (i) 短 horizon に偏在し、(ii) freeze と並ぶ "cognitive flat close" として LOB 固有の二次的指標になりうる。
+| | b_φ (拡散指数) | b_ΔW=φ·q | amp=b_ΔW−b_φ | M_iqr(φ) Spearman |
+|---|---:|---:|---:|---:|
+| C0u (agg uniform) | **+0.36** | +0.31 | −0.05 | +0.93 |
+| C0p (agg pareto)  | **+0.37** | +0.32 | −0.04 | +0.93 |
+| C2 (LOB uniform)  | **+0.13** | +0.06 | −0.09 | +0.71 |
+| C3 (LOB pareto)   | **+0.13** | +0.08 | −0.05 | +0.72 |
 
-最優先の補強検証は V1 (nonzero conditioning での `M_iqr` 再計算) と V2 (`ρ(ov, frac_zero_dG)`)。両方とも既存 parquet で完結し合計 1 時間未満。S7.1 として実施を推奨。
+(full-range adaptive bin でも同傾向: agg b_φ≈0.45、LOB b_φ≈0.12。pooled matched と per-seed mean が一致 → 頑健)
+
+---
+
+## 1. 当初仮説の棄却
+
+### 棄却1: 「zero と spread は同じ √τ 拡散の裏表」→ ✗
+- spread は確かに拡散的 (agg b_φ≈0.36、√τ=0.5 よりやや sub-diffusive)
+- だが zero 質量は **1/√τ で減らない**。zero-fraction は horizon に対し **非単調**
+  (h=1 で ~0.02 → h≈2-3 でピーク ~0.6 → h=32 で ~0.1-0.2 へ減衰、fig 右パネル)
+- → 「同じ拡散の裏表」という綺麗な話は成立しない。a_zero スカラーは非単調ゆえ無意味 (報告しない)
+
+### 棄却2: 「F1 が null なのは q-blind な φ で測ったから、ΔW なら出る」→ ✗
+- ΔW=φ·q で測っても wealth×world interaction は null:
+  b_ΔW interaction = +0.043 [+0.001, +0.086] (CI が 0 をかろうじて外れる程度)、
+  amp interaction = +0.031 [−0.007, +0.068] (0 跨ぎ)
+- → **F1 は変数を変えても null**。S7 の「#2 (interaction) は落とす」判断は正しかった
+
+---
+
+## 2. zero 除外が cherry-picking でない理由 (Yuito 懸念への直接回答)
+
+当初の心配「ゼロを除くと短 horizon を不均等に削り funnel を捏造しうる」は **杞憂**。実測では:
+- zero-fraction の agg/LOB プロファイルは **ほぼ同形** (fig 右、LOB が長 horizon でわずかに高いだけ)
+- zero は短 horizon に強く偏在していない (h=1 はむしろ最小、ピークは h≈2-3)
+- → zero 除外は funnel を**水増ししない**むしろ保守的。`M_bin_var_nz` (zero 除外) が +0.99 で
+  `M_bin_var_floor` (zero を −20.7 に floor) が −0.40 だった符号矛盾は、後者が
+  「mixing 分散」を測る数値 artifact だっただけ (S7 ③ の結論は維持)
+- **誠実な言い方**: 「ゼロを除いて funnel が出る」ではなく「funnel は nonzero spread が担い、
+  zero 組成は agg/LOB でほぼ共通なので funnel 比較を歪めない」。但し書きは要らない
+
+---
+
+## 3. 覆った S7 結論: funnel magnitude は LOB で本当に弱い (α → β寄り)
+
+S7 ② は matched-horizon の **Spearman slope** で agg 0.96 vs LOB 0.84 を「alpha-like (profile 同形)」
+と判定し、「機構は per-RT で無傷、量だけ変わる (α)」と結論した。
+
+**しかし Spearman は単調性しか見ず magnitude を飽和させる** (S7 自身が Limitations で警告)。
+実 log-log 指数 b で測り直すと:
+- **level (IQR 水準) は似ている** (S7 の IQR 比 ~0.75-1.0 と整合。fig 中央で LOB ΔW はむしろ高水準)
+- **slope (指数 b) は ~3 倍フラット** (agg 0.36 vs LOB 0.13 on φ、0.31 vs 0.06 on ΔW)
+
+→ S7 の「α (量だけ変わる、機構無傷)」は **over-claim**。完了 RT に限れば、**per-RT の
+「保有期間とともに損益分散が広がる」勾配そのものが LOB で圧縮されている** (β 寄りの証拠)。
+
+### caveat (2 つ、結論を弱めない範囲で明記)
+1. **fill-selection**: LOB 完了 RT は約定したものに選択されている。flat な funnel は
+   「機構が壊れた」のか「広 spread の長 RT が censoring で完了しない」のか分離不能。
+   どちらでも **「realized per-RT funnel magnitude は減る」= S7 の『量だけ』は誤り** は成立
+2. **離散性**: φ は小整数で IQR(φ) が粗く量子化 (fig 左の階段)。ただし連続な ΔW=φ·q でも
+   同じ傾向 (LOB b=0.06 vs agg 0.31) なので結論は離散性に依存しない
+
+---
+
+## 4. q の役割 (副次発見)
+
+amp = b_ΔW − b_φ は全条件で **≤ 0** (agg でも −0.04〜−0.05)。
+→ q (=⌊w/B⌋) は funnel の **slope を急峻化しない**。むしろ ΔW の level を上げるだけ
+(fig 中央: LOB ΔW は高 level・flat slope = 大口取引はあるが保有期間で分散が伸びない)。
+富増幅機構は「保有期間 funnel の傾き」には乗らず、損益の絶対水準に乗る、と読み替えられる。
+
+---
+
+## 5. 報告言い換え (S7 diff / dossier 反映必須)
+
+`stage_S7_diff.md` の以下を改訂:
+- §② 「結果は明確に α (機構は無傷、量だけが変わる)」
+  → 「**level は同水準だが slope (log-log 指数) は LOB で ~3 倍フラット**。Spearman では
+    単調性が飽和し magnitude 差を見落としていた。realized per-RT funnel は LOB で圧縮
+    (β 寄り)。fill-selection で『機構変質 vs 長 RT の censoring』は分離不能だが、
+    いずれにせよ『量だけ変わる』は誤り」
+- 統合 (b) §2(i) 「funnel 機構は per-RT で無傷 (α、S7)」
+  → 「per-RT funnel の **傾きは LOB で圧縮** される (b: 0.36→0.13、S7.1)。
+    level 保存 + slope 圧縮。freeze は RT 数だけでなく per-RT dispersion 勾配も変える」
+- 統合 §3 「壊すべき機構の変質が存在しなかった」
+  → この主張は **撤回**。傾きの圧縮という形で per-RT の変質が存在する
+
+「F1 interaction を落とす」「zero-floor は artifact」という S7 の他の結論は **維持**。
+
+---
+
+## 6. 残課題 (優先度 Yuito 判断)
+
+- **fill-selection の分離**: censored RT の counterfactual spread を推定する survival-aware
+  funnel 推定 (例: 打ち切り込みの quantile regression)。これが「機構変質 vs 選択」を分ける
+- **指数 b の CI を bootstrap で確定** (現状 per-seed mean の SE のみ。LOB の slope CI を出す)
+- **matched support の cap 感度** (h≤16/64 で b 比が安定か。現状 32 のみ headline)
