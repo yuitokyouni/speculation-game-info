@@ -1,3 +1,7 @@
+> ⚠️ **このリポは [financial-abm-lab](https://github.com/yuitokyouni/financial-abm-lab) に統合され、archive されました。** 履歴ごと `imported/speculation-game-info/` に移管済み。新規作業はモノレポ側で行ってください。
+
+---
+
 # 金融マーケットABM　キャッチアップ
 
 金融市場の Agent-Based Modelの主要論文をPython 実装し、
